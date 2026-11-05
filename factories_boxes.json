@@ -1,0 +1,1336 @@
+{
+ "derived_from_save": {
+  "file": "Miners Farm_190326-075353.sav",
+  "date": "2026-03-19 07:53 MDT",
+  "source": "/workspace/game.sav (Miners Farm, save v58; matches PC Miners Farm_190326-075353.sav, 2026-03-19 07:53 MDT)"
+ },
+ "generated": "2026-11-04T09:59:57-07:00",
+ "margin_m": 100.0,
+ "eps_cm": 15000,
+ "note": "Boxes reflect one save. To re-derive after new saves: re-run the factory analysis to get a new factories.json + raw_objects.json, then: python make_factory_boxes.py --in factories.json --raw raw_objects.json --out factories_boxes.json",
+ "factories": [
+  {
+   "id": "1",
+   "label": "F1",
+   "name": "Motor",
+   "name_source": "station names (inferred)",
+   "region": "outer NE (3.3 km from map centre)",
+   "bbox_cm": {
+    "min_x": 332806.28125,
+    "min_y": -163420.890625,
+    "max_x": 382373.6875,
+    "max_y": -104728.1015625
+   },
+   "size_m": [
+    496,
+    587
+   ],
+   "centroid_cm": [
+    350780.39215686277,
+    -140533.33333333334
+   ],
+   "counts": {
+    "production": 153,
+    "extraction": 7,
+    "stations": 1
+   },
+   "buildings": {
+    "FoundryMk1": 42,
+    "ConstructorMk1": 66,
+    "AssemblerMk1": 45
+   },
+   "extractors": {
+    "MinerMk2:OreCopper": 2,
+    "MinerMk2:OreIron": 2,
+    "MinerMk2:Coal": 3
+   },
+   "top_recipes": [
+    [
+     "Wire",
+     42
+    ],
+    [
+     "Alternate_IngotSteel_1",
+     24
+    ],
+    [
+     "SteelPipe",
+     24
+    ],
+    [
+     "Stator",
+     18
+    ],
+    [
+     "Alternate_Rotor",
+     18
+    ]
+   ],
+   "final_outputs": [
+    "Motor"
+   ],
+   "stations": [
+    {
+     "kind": "drone",
+     "name": "Motor",
+     "role": "output (source)",
+     "pos": [
+      358400.0,
+      -141300.0,
+      13100.0087890625
+     ],
+     "conflict": false
+    }
+   ],
+   "warnings": [
+    "drone port \"Motor\" is unpaired",
+    "todo: Motor (F1): unpaired, no drone, buffer full (900). Build a D Motor port where Motors are needed (Turbo Motor / Modular Engine line) and pair it."
+   ]
+  },
+  {
+   "id": "2",
+   "label": "F2",
+   "name": "Heavy Modular Frame + Steel Pipe",
+   "name_source": "station names (inferred)",
+   "region": "outer NE (4.1 km from map centre)",
+   "bbox_cm": {
+    "min_x": 364874.6875,
+    "min_y": -272928.125,
+    "max_x": 410379.40625,
+    "max_y": -179927.90625
+   },
+   "size_m": [
+    455,
+    930
+   ],
+   "centroid_cm": [
+    390314.84375,
+    -233169.53125
+   ],
+   "counts": {
+    "production": 128,
+    "extraction": 8,
+    "stations": 2
+   },
+   "buildings": {
+    "SmelterMk1": 32,
+    "FoundryMk1": 12,
+    "ConstructorMk1": 48,
+    "OilRefinery": 4,
+    "AssemblerMk1": 28,
+    "ManufacturerMk1": 4
+   },
+   "extractors": {
+    "MinerMk2:Coal": 2,
+    "MinerMk2:OreIron": 3,
+    "MinerMk2:Stone": 1,
+    "WaterPump:Water": 2
+   },
+   "top_recipes": [
+    [
+     "IngotIron",
+     32
+    ],
+    [
+     "SteelPipe",
+     25
+    ],
+    [
+     "Alternate_Wire_1",
+     14
+    ],
+    [
+     "Alternate_IngotSteel_1",
+     12
+    ],
+    [
+     "Alternate_ModularFrame",
+     10
+    ]
+   ],
+   "final_outputs": [
+    "Heavy Modular Frame",
+    "Steel Beam"
+   ],
+   "stations": [
+    {
+     "kind": "drone",
+     "name": "Heavy Modular Fram",
+     "role": "output (source)",
+     "pos": [
+      397600.0,
+      -234400.0,
+      9400.0126953125
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "drone",
+     "name": "Steel Pipe",
+     "role": "output (source)",
+     "pos": [
+      396000.0,
+      -238800.0,
+      5000.01904296875
+     ],
+     "conflict": false
+    }
+   ],
+   "warnings": []
+  },
+  {
+   "id": "3",
+   "label": "F3",
+   "name": "Computer",
+   "name_source": "station names (inferred)",
+   "region": "outer NE (3.6 km from map centre)",
+   "bbox_cm": {
+    "min_x": 258648.75,
+    "min_y": -306079.1875,
+    "max_x": 318597.78125,
+    "max_y": -236510.546875
+   },
+   "size_m": [
+    599,
+    696
+   ],
+   "centroid_cm": [
+    292470.88607594935,
+    -262048.1012658228
+   ],
+   "counts": {
+    "production": 79,
+    "extraction": 7,
+    "stations": 1
+   },
+   "buildings": {
+    "FoundryMk1": 8,
+    "OilRefinery": 12,
+    "ConstructorMk1": 29,
+    "AssemblerMk1": 20,
+    "ManufacturerMk1": 10
+   },
+   "extractors": {
+    "MinerMk2:OreCopper": 1,
+    "MinerMk2:OreIron": 1,
+    "WaterPump:Water": 1,
+    "MinerMk2:Stone": 1,
+    "MinerMk2:Coal": 1
+   },
+   "top_recipes": [
+    [
+     "Quickwire",
+     14
+    ],
+    [
+     "Alternate_SteamedCopperSheet",
+     12
+    ],
+    [
+     "QuartzCrystal",
+     10
+    ],
+    [
+     "Alternate_CircuitBoard_1",
+     10
+    ],
+    [
+     "Alternate_CopperAlloyIngot",
+     8
+    ]
+   ],
+   "final_outputs": [
+    "Quartz Crystal",
+    "Computer",
+    "AI Limiter",
+    "High-Speed Connector",
+    "Cable"
+   ],
+   "stations": [
+    {
+     "kind": "drone",
+     "name": "Computer",
+     "role": "output (source)",
+     "pos": [
+      284800.0,
+      -253900.0,
+      3100.004150390625
+     ],
+     "conflict": false
+    }
+   ],
+   "warnings": [
+    "drone port \"Computer\" is unpaired",
+    "todo: Computer (F3): unpaired, no drone, buffer full (900). Pair it to a future RCU/Supercomputer site (D Computer)."
+   ]
+  },
+  {
+   "id": "4",
+   "label": "F4",
+   "name": "Iron Ingot + Copper Ingot + Caterium Ingot",
+   "name_source": "station names (inferred)",
+   "region": "outer NW (2.4 km from map centre)",
+   "bbox_cm": {
+    "min_x": -200787.0,
+    "min_y": -131629.3828125,
+    "max_x": -137828.359375,
+    "max_y": -69788.0
+   },
+   "size_m": [
+    630,
+    618
+   ],
+   "centroid_cm": [
+    -168407.23801369863,
+    -106074.07844606164
+   ],
+   "counts": {
+    "production": 73,
+    "extraction": 8,
+    "stations": 4
+   },
+   "buildings": {
+    "FoundryMk1": 28,
+    "ConstructorMk1": 10,
+    "ManufacturerMk1": 2,
+    "OilRefinery": 32,
+    "HadronCollider": 1
+   },
+   "extractors": {
+    "MinerMk3:OreIron": 3,
+    "MinerMk3:OreGold": 1,
+    "WaterPump:Water": 4
+   },
+   "top_recipes": [
+    [
+     "Alternate_PureCateriumIngot",
+     32
+    ],
+    [
+     "Alternate_IngotIron",
+     22
+    ],
+    [
+     "Alternate_CopperAlloyIngot",
+     6
+    ],
+    [
+     "CopperDust",
+     2
+    ],
+    [
+     "Protein_Hog",
+     1
+    ]
+   ],
+   "final_outputs": [
+    "Caterium Ingot",
+    "Iron Ingot",
+    "Alien DNA Capsule",
+    "Solid Biofuel",
+    "Crystal Oscillator",
+    "Nuclear Pasta",
+    "Gas Filter"
+   ],
+   "stations": [
+    {
+     "kind": "train",
+     "name": "Iron Ingot A",
+     "role": "output",
+     "pos": [
+      -169896.578125,
+      -111623.2265625,
+      1580.1085205078125
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "train",
+     "name": "Copper Ingot A",
+     "role": "output",
+     "pos": [
+      -167325.421875,
+      -108559.046875,
+      1580.1087646484375
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "drone",
+     "name": "Iron Ignot",
+     "role": "output (source)",
+     "pos": [
+      -166427.375,
+      -115578.5546875,
+      1580.1083984375
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "train",
+     "name": "Caterium Ingot A",
+     "role": "output",
+     "pos": [
+      -164754.265625,
+      -105494.8671875,
+      1580.1048583984375
+     ],
+     "conflict": false
+    }
+   ],
+   "warnings": [
+    "todo: Iron Ingot A, Copper Ingot A, Caterium Ingot A (F4), 9,600 each and full: add an ingot train to the Phase 4 build site."
+   ]
+  },
+  {
+   "id": "5",
+   "label": "F5",
+   "name": "Compacted Coal + Rifle Ammo",
+   "name_source": "station names (inferred)",
+   "region": "outer NE (3.1 km from map centre)",
+   "bbox_cm": {
+    "min_x": 218121.234375,
+    "min_y": -286999.90625,
+    "max_x": 272400.0,
+    "max_y": -227700.0
+   },
+   "size_m": [
+    543,
+    593
+   ],
+   "centroid_cm": [
+    242605.6603773585,
+    -246094.3396226415
+   ],
+   "counts": {
+    "production": 53,
+    "extraction": 6,
+    "stations": 8
+   },
+   "buildings": {
+    "AssemblerMk1": 23,
+    "SmelterMk1": 9,
+    "ConstructorMk1": 7,
+    "OilRefinery": 13,
+    "Packager": 1
+   },
+   "extractors": {
+    "MinerMk2:Sulfur": 1,
+    "MinerMk2:OreIron": 1,
+    "WaterPump:Water": 2,
+    "MinerMk2:OreGold": 1,
+    "MinerMk2:Coal": 1,
+    "MinerMk1:OreCopper": 1
+   },
+   "top_recipes": [
+    [
+     "Alternate_EnrichedCoal",
+     20
+    ],
+    [
+     "Alternate_PureCateriumIngot",
+     12
+    ],
+    [
+     "IngotIron",
+     7
+    ],
+    [
+     "IronPlate",
+     3
+    ],
+    [
+     "IronRod",
+     2
+    ]
+   ],
+   "final_outputs": [
+    "Caterium Ingot",
+    "Iron Plate",
+    "Iron Rod",
+    "Empty Canister",
+    "Rifle Ammo",
+    "Nobelisk"
+   ],
+   "stations": [
+    {
+     "kind": "train",
+     "name": "Compacted Coal Load",
+     "role": "output",
+     "pos": [
+      250400.0,
+      -249200.0,
+      5600.01171875
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "train",
+     "name": "Rubber Unload",
+     "role": "input",
+     "pos": [
+      254400.0,
+      -249200.0,
+      5600.0078125
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "train",
+     "name": "Venray",
+     "role": "default/unnamed (random town name)",
+     "pos": [
+      258400.0,
+      -249200.0,
+      5600.013671875
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "train",
+     "name": "Tilburg",
+     "role": "default/unnamed (random town name)",
+     "pos": [
+      262400.0,
+      -249200.0,
+      5600.01318359375
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "drone",
+     "name": "D Drone Fuel",
+     "role": "input (D = demand/destination)",
+     "pos": [
+      247200.0,
+      -255700.0,
+      5600.009765625
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "drone",
+     "name": "D Packaged Heavy Residue",
+     "role": "input (D = demand/destination)",
+     "pos": [
+      249600.0,
+      -255700.0,
+      5600.009765625
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "drone",
+     "name": "D Steel Pipe",
+     "role": "input (D = demand/destination)",
+     "pos": [
+      254800.0,
+      -255700.0,
+      5600.0078125
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "drone",
+     "name": "Rifle Ammo",
+     "role": "output (source)",
+     "pos": [
+      254800.0,
+      -258100.0,
+      5600.017578125
+     ],
+     "conflict": false
+    }
+   ],
+   "warnings": [
+    "input station \"Rubber Unload\" (Rubber) is not consumed by any recipe in this cluster",
+    "todo: Default town names: Venray, Tilburg (F5, empty), Dordrecht (F6, load mode), 's-Hertogenbosch (F10, unload), St\u00e5ngby (F10, empty). Rename each one to an item, or delete the unused ones.",
+    "todo: Rubber Unload (F5): Rubber Train delivers here (16,456 on the platforms), but no F5 recipe uses Rubber. Send the Rubber to a Modular Engine/Turbo Motor site instead."
+   ]
+  },
+  {
+   "id": "6",
+   "label": "F6",
+   "name": "Plastic + Rubber + Packaged Heavy Oil Residue",
+   "name_source": "station names (inferred)",
+   "region": "outer W (3.2 km from map centre)",
+   "bbox_cm": {
+    "min_x": -290181.125,
+    "min_y": 20798.513671875,
+    "max_x": -219053.75,
+    "max_y": 100588.171875
+   },
+   "size_m": [
+    711,
+    798
+   ],
+   "centroid_cm": [
+    -269391.1610576923,
+    41117.742638221156
+   ],
+   "counts": {
+    "production": 52,
+    "extraction": 18,
+    "stations": 6
+   },
+   "buildings": {
+    "OilRefinery": 42,
+    "Blender": 8,
+    "Packager": 1,
+    "ConstructorMk1": 1
+   },
+   "extractors": {
+    "OilPump": 1,
+    "WaterPump:Water": 9,
+    "FrackingExtractor:LiquidOil": 5,
+    "FrackingExtractor": 1
+   },
+   "top_recipes": [
+    [
+     "Alternate_RecycledRubber",
+     14
+    ],
+    [
+     "Alternate_Plastic_1",
+     14
+    ],
+    [
+     "Alternate_HeavyOilResidue",
+     9
+    ],
+    [
+     "Alternate_DilutedFuel",
+     8
+    ],
+    [
+     "ResidualRubber",
+     5
+    ]
+   ],
+   "final_outputs": [
+    "Packaged Heavy Oil Residue"
+   ],
+   "stations": [
+    {
+     "kind": "train",
+     "name": "Dordrecht",
+     "role": "default/unnamed (random town name)",
+     "pos": [
+      -244508.46875,
+      39498.51171875,
+      -817.0245361328125
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "train",
+     "name": "Plastic",
+     "role": "output",
+     "pos": [
+      -248508.46875,
+      39498.51171875,
+      -817.0257568359375
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "train",
+     "name": "Rubber",
+     "role": "output",
+     "pos": [
+      -252508.46875,
+      39498.51171875,
+      -817.0179443359375
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "drone",
+     "name": "Packaged Heavy Residue",
+     "role": "output (source)",
+     "pos": [
+      -277408.46875,
+      35998.51171875,
+      -817.0248413085938
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "drone",
+     "name": "Rubber",
+     "role": "output (source)",
+     "pos": [
+      -259708.46875,
+      42298.51171875,
+      -817.0228881835938
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "drone",
+     "name": "Drone Port 25",
+     "role": "default/unnamed",
+     "pos": [
+      -259708.46875,
+      47898.51171875,
+      -817.0297241210938
+     ],
+     "conflict": false
+    }
+   ],
+   "warnings": [
+    "station \"Dordrecht\" is 207 m from nearest building of this cluster (weak attachment)",
+    "station \"Plastic\" is 167 m from nearest building of this cluster (weak attachment)",
+    "drone port \"Rubber\" is unpaired",
+    "drone port \"Drone Port 25\" is unpaired",
+    "todo: Rubber (F6): unpaired, 3600 Rubber waiting. Pair it with D Rubber (F10).",
+    "todo: Drone Port 25 (F6): default name, outputs Plastic (3600), unpaired. Rename it Plastic and pair it, or remove it.",
+    "todo: D Rubber (F10): no pairing, no drone (2165 Rubber left from an earlier link). Pair it to Rubber (F6) and add a drone.",
+    "todo: Plastic (F6), 19,200 waiting: add a train or retire the station.",
+    "todo: Default town names: Venray, Tilburg (F5, empty), Dordrecht (F6, load mode), 's-Hertogenbosch (F10, unload), St\u00e5ngby (F10, empty). Rename each one to an item, or delete the unused ones.",
+    "todo: The Rubber Train stop at Rubber (F6) has no load filter. Check that the train actually loads there."
+   ]
+  },
+  {
+   "id": "7",
+   "label": "F7",
+   "name": "Plastic + Rubber + Packaged Rocket Fuel",
+   "name_source": "station names (inferred)",
+   "region": "outer N (2.3 km from map centre)",
+   "bbox_cm": {
+    "min_x": -23208.287109375,
+    "min_y": -261700.0,
+    "max_x": 67144.1171875,
+    "max_y": -176849.65625
+   },
+   "size_m": [
+    904,
+    849
+   ],
+   "centroid_cm": [
+    -2902.127659574468,
+    -223838.29787234042
+   ],
+   "counts": {
+    "production": 47,
+    "extraction": 10,
+    "stations": 8
+   },
+   "buildings": {
+    "OilRefinery": 37,
+    "Blender": 9,
+    "Packager": 1
+   },
+   "extractors": {
+    "OilPump": 3,
+    "WaterPump:Water": 3
+   },
+   "top_recipes": [
+    [
+     "Alternate_TurboHeavyFuel",
+     16
+    ],
+    [
+     "Alternate_HeavyOilResidue",
+     11
+    ],
+    [
+     "RocketFuel",
+     8
+    ],
+    [
+     "ResidualRubber",
+     6
+    ],
+    [
+     "ResidualPlastic",
+     2
+    ]
+   ],
+   "final_outputs": [
+    "Rubber",
+    "Plastic",
+    "Fabric",
+    "Packaged Rocket Fuel",
+    "Turbo Rifle Ammo"
+   ],
+   "stations": [
+    {
+     "kind": "train",
+     "name": "CC for TurboFuel",
+     "role": "input",
+     "pos": [
+      -4800.0,
+      -196400.0,
+      1600.013427734375
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "train",
+     "name": "Plastic (small)",
+     "role": "output",
+     "pos": [
+      -800.0,
+      -196400.0,
+      1600.0130615234375
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "train",
+     "name": "Rubber (small)",
+     "role": "output",
+     "pos": [
+      3200.0,
+      -196400.0,
+      1600.0130615234375
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "train",
+     "name": "D Nitric Acid",
+     "role": "input",
+     "pos": [
+      7200.0,
+      -196400.0,
+      1600.004638671875
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "drone",
+     "name": "D Empty Fluid Tank",
+     "role": "input (D = demand/destination)",
+     "pos": [
+      -9600.0,
+      -224800.0,
+      600.0068359375
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "drone",
+     "name": "Packaged Rocket Fuel",
+     "role": "output (source)",
+     "pos": [
+      -9600.0,
+      -222300.0,
+      600.0068359375
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "drone",
+     "name": "D Aluminum Casing",
+     "role": "input (D = demand/destination)",
+     "pos": [
+      -9600.0,
+      -227200.0,
+      600.008056640625
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "drone",
+     "name": "D Rifle Ammo",
+     "role": "input (D = demand/destination)",
+     "pos": [
+      -9600.0,
+      -229600.0,
+      600.008056640625
+     ],
+     "conflict": false
+    }
+   ],
+   "warnings": [
+    "todo: Plastic (small) (F7), 19,200 waiting: add a train or retire the station.",
+    "todo: Rubber (small) (F7), 19,200 waiting: add a train or retire the station."
+   ]
+  },
+  {
+   "id": "8",
+   "label": "F8",
+   "name": "Aluminum Casing + Alclad Aluminum Sheet + Empty Fluid Tank",
+   "name_source": "station names (inferred)",
+   "region": "central (0.6 km from map centre)",
+   "bbox_cm": {
+    "min_x": -1651.5693359375,
+    "min_y": 42119.98828125,
+    "max_x": 49477.6484375,
+    "max_y": 80432.0
+   },
+   "size_m": [
+    511,
+    383
+   ],
+   "centroid_cm": [
+    22762.5,
+    55712.5
+   ],
+   "counts": {
+    "production": 16,
+    "extraction": 3,
+    "stations": 3
+   },
+   "buildings": {
+    "OilRefinery": 2,
+    "SmelterMk1": 8,
+    "AssemblerMk1": 5,
+    "ConstructorMk1": 1
+   },
+   "extractors": {
+    "WaterPump:Water": 1,
+    "MinerMk3:Coal": 1,
+    "MinerMk3:OreBauxite": 1
+   },
+   "top_recipes": [
+    [
+     "PureAluminumIngot",
+     8
+    ],
+    [
+     "AluminumSheet",
+     4
+    ],
+    [
+     "Alternate_SloppyAlumina",
+     1
+    ],
+    [
+     "AluminumScrap",
+     1
+    ],
+    [
+     "Alternate_AlcladCasing",
+     1
+    ]
+   ],
+   "final_outputs": [
+    "Alclad Aluminum Sheet",
+    "Aluminum Casing",
+    "Empty Fluid Tank"
+   ],
+   "stations": [
+    {
+     "kind": "drone",
+     "name": "Aluminum Casing",
+     "role": "output (source)",
+     "pos": [
+      21600.0,
+      59200.0,
+      27000.01171875
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "drone",
+     "name": "Alclad",
+     "role": "output (source)",
+     "pos": [
+      24000.0,
+      59200.0,
+      27000.01953125
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "drone",
+     "name": "Empty Fluid Tank",
+     "role": "output (source)",
+     "pos": [
+      26400.0,
+      59200.0,
+      27000.013671875
+     ],
+     "conflict": false
+    }
+   ],
+   "warnings": []
+  },
+  {
+   "id": "9",
+   "label": "F9",
+   "name": "SAM Fluctuator",
+   "name_source": "dominant recipe (inferred)",
+   "region": "outer NW (2.1 km from map centre)",
+   "bbox_cm": {
+    "min_x": -120588.0,
+    "min_y": -156823.21875,
+    "max_x": -74081.15625,
+    "max_y": -111528.6796875
+   },
+   "size_m": [
+    465,
+    453
+   ],
+   "centroid_cm": [
+    -105350.0,
+    -136770.0
+   ],
+   "counts": {
+    "production": 10,
+    "extraction": 12,
+    "stations": 0
+   },
+   "buildings": {
+    "ConstructorMk1": 3,
+    "ManufacturerMk1": 1,
+    "SmelterMk1": 6
+   },
+   "extractors": {
+    "MinerMk1:OreIron": 1,
+    "WaterPump:Water": 8,
+    "MinerMk2:Coal": 3
+   },
+   "top_recipes": [
+    [
+     "IngotIron",
+     6
+    ],
+    [
+     "IngotSAM",
+     1
+    ],
+    [
+     "SAMFluctuator",
+     1
+    ],
+    [
+     "Alternate_Wire_1",
+     1
+    ],
+    [
+     "Alternate_SteelPipe_Iron",
+     1
+    ]
+   ],
+   "final_outputs": [
+    "SAM Fluctuator"
+   ],
+   "stations": [],
+   "warnings": [
+    "no train/drone station attached: likely a feeder/sub-factory, build-material line, or abandoned",
+    "todo: F9 SAM Fluctuator, F11 Copper Ingot, F12/F13 Concrete have no stations. Add a SAM Fluctuator output for Tier 9 (Converter needs 100)."
+   ]
+  },
+  {
+   "id": "10",
+   "label": "F10",
+   "name": "Nitric Acid",
+   "name_source": "station names (inferred)",
+   "region": "outer NW (3.6 km from map centre)",
+   "bbox_cm": {
+    "min_x": -290000.0,
+    "min_y": -212388.53125,
+    "max_x": -228400.0,
+    "max_y": -172000.0
+   },
+   "size_m": [
+    616,
+    404
+   ],
+   "centroid_cm": [
+    -246266.66666666666,
+    -196555.55555555556
+   ],
+   "counts": {
+    "production": 9,
+    "extraction": 9,
+    "stations": 9
+   },
+   "buildings": {
+    "Blender": 6,
+    "ConstructorMk1": 1,
+    "AssemblerMk1": 2
+   },
+   "extractors": {
+    "FrackingExtractor:NitrogenGas": 7,
+    "WaterPump:Water": 2
+   },
+   "top_recipes": [
+    [
+     "NitricAcid",
+     4
+    ],
+    [
+     "IronPlate",
+     1
+    ],
+    [
+     "FusedModularFrame",
+     1
+    ],
+    [
+     "CoolingSystem",
+     1
+    ],
+    [
+     "HeatSink",
+     1
+    ]
+   ],
+   "final_outputs": [
+    "Nitric Acid",
+    "Cooling System",
+    "Pressure Conversion Cube"
+   ],
+   "stations": [
+    {
+     "kind": "train",
+     "name": "Nitric Acid",
+     "role": "output",
+     "pos": [
+      -272000.0,
+      -182000.0,
+      3100.014404296875
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "train",
+     "name": "'s-Hertogenbosch",
+     "role": "default/unnamed (random town name)",
+     "pos": [
+      -276000.0,
+      -182000.0,
+      3100.014404296875
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "train",
+     "name": "St\u00e5ngby",
+     "role": "default/unnamed (random town name)",
+     "pos": [
+      -280000.0,
+      -182000.0,
+      3100.0107421875
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "drone",
+     "name": "Drone Fuel - Demand for Nitric Acid",
+     "role": "input (D = demand/destination)",
+     "pos": [
+      -250400.0,
+      -200000.0,
+      200.0118408203125
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "drone",
+     "name": "Iron Ingot - for Nitric Acid",
+     "role": "input (D = demand/destination)",
+     "pos": [
+      -248000.0,
+      -200000.0,
+      200.0145721435547
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "drone",
+     "name": "D Heavy Modular Frame",
+     "role": "input (D = demand/destination)",
+     "pos": [
+      -245600.0,
+      -200000.0,
+      200.01321411132812
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "drone",
+     "name": "D Aluminum Casing",
+     "role": "input (D = demand/destination)",
+     "pos": [
+      -243200.0,
+      -200000.0,
+      200.01321411132812
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "drone",
+     "name": "D Heat Sink",
+     "role": "input (D = demand/destination)",
+     "pos": [
+      -240800.0,
+      -200000.0,
+      200.01028442382812
+     ],
+     "conflict": false
+    },
+    {
+     "kind": "drone",
+     "name": "D Rubber",
+     "role": "input (D = demand/destination)",
+     "pos": [
+      -238400.0,
+      -200000.0,
+      200.00938415527344
+     ],
+     "conflict": false
+    }
+   ],
+   "warnings": [
+    "station \"Nitric Acid\" is 250 m from nearest building of this cluster (weak attachment)",
+    "station \"'s-Hertogenbosch\" is 285 m from nearest building of this cluster (weak attachment)",
+    "station \"St\u00e5ngby\" is 321 m from nearest building of this cluster (weak attachment)",
+    "input station \"Drone Fuel - Demand for Nitric Acid\" (Packaged Rocket Fuel) is not consumed by any recipe in this cluster",
+    "drone port \"D Rubber\" is unpaired",
+    "todo: Rubber (F6): unpaired, 3600 Rubber waiting. Pair it with D Rubber (F10).",
+    "todo: D Rubber (F10): no pairing, no drone (2165 Rubber left from an earlier link). Pair it to Rubber (F6) and add a drone.",
+    "todo: D Heat Sink (F10): receives Alclad from Alclad, so the name doesn't match the item. Rename it D Alclad.",
+    "todo: Drone Fuel - Demand for Nitric Acid (F10): no recipe at F10 uses it. It is drone fuel, so it's fine; optionally rename it D Drone Fuel (F10).",
+    "todo: Default town names: Venray, Tilburg (F5, empty), Dordrecht (F6, load mode), 's-Hertogenbosch (F10, unload), St\u00e5ngby (F10, empty). Rename each one to an item, or delete the unused ones."
+   ]
+  },
+  {
+   "id": "11",
+   "label": "F11",
+   "name": "Copper Ingot",
+   "name_source": "dominant recipe (inferred)",
+   "region": "central (0.7 km from map centre)",
+   "bbox_cm": {
+    "min_x": 46900.0,
+    "min_y": 55600.0,
+    "max_x": 70400.0,
+    "max_y": 92304.8828125
+   },
+   "size_m": [
+    235,
+    367
+   ],
+   "centroid_cm": [
+    58650.0,
+    65600.0
+   ],
+   "counts": {
+    "production": 8,
+    "extraction": 1,
+    "stations": 0
+   },
+   "buildings": {
+    "SmelterMk1": 8
+   },
+   "extractors": {
+    "MinerMk3:OreCopper": 1
+   },
+   "top_recipes": [
+    [
+     "IngotCopper",
+     8
+    ]
+   ],
+   "final_outputs": [
+    "Copper Ingot"
+   ],
+   "stations": [],
+   "warnings": [
+    "no train/drone station attached: likely a feeder/sub-factory, build-material line, or abandoned",
+    "todo: F9 SAM Fluctuator, F11 Copper Ingot, F12/F13 Concrete have no stations. Add a SAM Fluctuator output for Tier 9 (Converter needs 100)."
+   ]
+  },
+  {
+   "id": "12",
+   "label": "F12",
+   "name": "Concrete",
+   "name_source": "dominant recipe (inferred)",
+   "region": "outer NW (2.5 km from map centre)",
+   "bbox_cm": {
+    "min_x": -192183.359375,
+    "min_y": -154145.578125,
+    "max_x": -151600.0,
+    "max_y": -119627.5625
+   },
+   "size_m": [
+    406,
+    345
+   ],
+   "centroid_cm": [
+    -162400.0,
+    -133600.0
+   ],
+   "counts": {
+    "production": 6,
+    "extraction": 4,
+    "stations": 0
+   },
+   "buildings": {
+    "ConstructorMk1": 6
+   },
+   "extractors": {
+    "MinerMk1:SAM": 1,
+    "MinerMk1:RawQuartz": 1,
+    "MinerMk2:Stone": 1,
+    "MinerMk3:OreCopper": 1
+   },
+   "top_recipes": [
+    [
+     "Concrete",
+     6
+    ]
+   ],
+   "final_outputs": [
+    "Concrete"
+   ],
+   "stations": [],
+   "warnings": [
+    "no train/drone station attached: likely a feeder/sub-factory, build-material line, or abandoned",
+    "todo: F9 SAM Fluctuator, F11 Copper Ingot, F12/F13 Concrete have no stations. Add a SAM Fluctuator output for Tier 9 (Converter needs 100)."
+   ]
+  },
+  {
+   "id": "13",
+   "label": "F13",
+   "name": "Concrete",
+   "name_source": "dominant recipe (inferred)",
+   "region": "outer NW (2.9 km from map centre)",
+   "bbox_cm": {
+    "min_x": -223022.5625,
+    "min_y": -180020.8125,
+    "max_x": -195600.0,
+    "max_y": -131688.640625
+   },
+   "size_m": [
+    274,
+    483
+   ],
+   "centroid_cm": [
+    -206400.0,
+    -144100.0
+   ],
+   "counts": {
+    "production": 3,
+    "extraction": 2,
+    "stations": 0
+   },
+   "buildings": {
+    "ConstructorMk1": 3
+   },
+   "extractors": {
+    "MinerMk1:Stone": 1,
+    "MinerMk1:Sulfur": 1
+   },
+   "top_recipes": [
+    [
+     "Concrete",
+     3
+    ]
+   ],
+   "final_outputs": [
+    "Concrete"
+   ],
+   "stations": [],
+   "warnings": [
+    "no train/drone station attached: likely a feeder/sub-factory, build-material line, or abandoned",
+    "todo: F9 SAM Fluctuator, F11 Copper Ingot, F12/F13 Concrete have no stations. Add a SAM Fluctuator output for Tier 9 (Converter needs 100)."
+   ]
+  }
+ ]
+}
