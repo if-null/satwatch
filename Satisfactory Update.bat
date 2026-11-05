@@ -1,16 +1,21 @@
 @echo off
 setlocal
 cd /d "%~dp0"
-rem ---- Your settings: leave empty to use the defaults (see README, "Configure") ----
-rem Example: set SATWATCH_ARGS=--saves "%LOCALAPPDATA%\FactoryGame\Saved\SaveGames\12345678901234567" --pattern "MySave*.sav"
+rem ---- Optional settings (power users). Leave empty: save folder and session are auto-detected. ----
+rem Example: set SATWATCH_ARGS=--saves "D:\MySaves" --pattern "MySave_*.sav"
 set SATWATCH_ARGS=
-rem Optional: full path to python.exe if it is not in C:\Python314 or on PATH
+rem Optional: full path to python.exe (leave empty to auto-detect; Python is installed with winget if missing)
 set "PYEXE="
-if not defined PYEXE if exist "C:\Python314\python.exe" set "PYEXE=C:\Python314\python.exe"
-if not defined PYEXE (py -3 --version >nul 2>&1 && set "PYEXE=py -3")
-if not defined PYEXE (python --version >nul 2>&1 && set "PYEXE=python")
+call :findpy
 if not defined PYEXE (
-  echo ERROR: Python not found. Install Python 3 to C:\Python314 or add it to PATH.
+  echo Python 3 was not found. Trying to install it with winget ^(per-user, no admin^)...
+  winget --version >nul 2>&1 && winget install -e --id Python.Python.3.12 --scope user --silent --accept-package-agreements --accept-source-agreements
+  call :findpy
+)
+if not defined PYEXE (
+  echo.
+  echo Python 3 could not be installed automatically.
+  echo Please install it from https://www.python.org/downloads/ and run this file again.
   pause
   exit /b 1
 )
@@ -23,3 +28,13 @@ if not "%RC%"=="0" (
   pause
 )
 exit /b %RC%
+
+:findpy
+if defined PYEXE goto :eof
+if exist "C:\Python314\python.exe" set "PYEXE=C:\Python314\python.exe"& goto :eof
+for /d %%D in ("%LOCALAPPDATA%\Programs\Python\Python3*") do if exist "%%~fD\python.exe" set PYEXE="%%~fD\python.exe"
+if defined PYEXE goto :eof
+py -3 --version >nul 2>&1 && set "PYEXE=py -3"
+if defined PYEXE goto :eof
+python --version >nul 2>&1 && set "PYEXE=python"
+goto :eof

@@ -1,31 +1,82 @@
 #!/usr/bin/env python3
 """satwatch: run-once Satisfactory save watcher + offline dashboard.
 
-Double-click 'Satisfactory Update.bat'. Parses new '*.sav' saves with
+Double-click 'Satisfactory Update.bat'. Auto-detects the save folder and the newest
+session, parses new saves with
 satparse.py (shipped beside this file), rebuilds the timeline, writes a summary into
 the Obsidian vault folder and serves a dashboard on http://127.0.0.1:8777/.
 Stdlib only.
 """
-import argparse, datetime, http.server, json, os, secrets, shutil, socketserver, sys, threading, time, traceback, webbrowser
+import argparse, datetime, http.server, json, os, re, secrets, shutil, socketserver, sys, threading, time, traceback, webbrowser
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 
 # ---------------- configuration (edit here or use flags) ----------------
 HOME = Path(os.environ.get('USERPROFILE') or Path.home())
-_SAVEGAMES = Path(os.environ.get('LOCALAPPDATA') or (HOME / 'AppData' / 'Local')) / 'FactoryGame' / 'Saved' / 'SaveGames'
-def _default_saves():
-    # Saves live in SaveGames\<account id>\. Use the only such subfolder if there is exactly one.
+def savegames_root(env=None):
+    """Satisfactory's SaveGames folder, from LOCALAPPDATA (Windows). Pass env (a dict) to test."""
+    env = os.environ if env is None else env
+    base = env.get('LOCALAPPDATA')
+    if base:
+        return Path(base) / 'FactoryGame' / 'Saved' / 'SaveGames'
+    up = env.get('USERPROFILE')
+    return (Path(up) if up else Path.home()) / 'AppData' / 'Local' / 'FactoryGame' / 'Saved' / 'SaveGames'
+
+
+def detect_saves_dir(root=None):
+    """Pick the SaveGames\\<id> subfolder holding the most recently modified .sav. Returns None if none."""
+    root = Path(root) if root else savegames_root()
+    best, best_t = None, -1.0
     try:
-        subs = [d for d in _SAVEGAMES.iterdir() if d.is_dir() and any(d.glob('*.sav'))]
+        subs = [d for d in root.iterdir() if d.is_dir()]
     except OSError:
-        subs = []
-    return subs[0] if len(subs) == 1 else _SAVEGAMES
-DEFAULT_SAVES = _default_saves()
+        return None
+    for d in subs:
+        try:
+            t = max((f.stat().st_mtime for f in d.glob('*.sav') if f.is_file()), default=None)
+        except OSError:
+            t = None
+        if t is not None and t > best_t:
+            best, best_t = d, t
+    return best
+
+
+_SESSION_RES = [re.compile(r'^(.+)_autosave_\d+\.sav$', re.I), re.compile(r'^(.+)_\d{6}-\d{6}\.sav$', re.I)]
+
+
+def session_of(name):
+    """Session name from a Satisfactory save file name, or None if the name does not match."""
+    for rx in _SESSION_RES:
+        m = rx.match(name)
+        if m:
+            return m.group(1)
+    return None
+
+
+def find_saves(saves_dir, pattern):
+    """Saves in saves_dir, oldest first. pattern 'auto' = the session of the newest save.
+    Returns (saves, description of the pattern used)."""
+    d = Path(saves_dir)
+    if not d.is_dir():
+        return [], pattern
+    if pattern != 'auto':
+        return sorted(d.glob(pattern), key=lambda p: p.stat().st_mtime), pattern
+    allsv = sorted((f for f in d.glob('*.sav') if f.is_file()), key=lambda p: p.stat().st_mtime)
+    if not allsv:
+        return [], 'auto (*.sav)'
+    sess = session_of(allsv[-1].name)
+    if not sess:
+        return allsv, 'auto (*.sav; newest save name has no session part)'
+    pick = [f for f in allsv if f.name == sess + '.sav' or (f.name.startswith(sess + '_') and session_of(f.name) == sess)]
+    return pick, 'auto (session %r: %s_*.sav)' % (sess, sess)
+
+
+DEFAULT_SAVES = 'auto'
 DEFAULT_WORK = HOME / 'satisfactory-work'
 DEFAULT_VAULT_OUT = HOME / 'Documents' / 'satwatch' / 'data'
-DEFAULT_PATTERN = '*.sav'
+DEFAULT_PATTERN = 'auto'  # newest save's session; '*.sav' = every save
 DEFAULT_PORT = 8777
-SATWATCH_VERSION = '1.3'
+SATWATCH_VERSION = '1.4'
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -34,13 +85,16 @@ import satparse  # noqa: E402  (save parser, shipped beside this file; 0.4 adds 
 import volume  # noqa: E402  (Volume items table, computed from the latest snapshot)
 import plan as planmod  # noqa: E402  (plan.json in the work folder; only the dashboard writes it)
 import insights  # noqa: E402  (milestone history, census, inventory, parser notes)
+import satfactories  # noqa: E402  (automatic factory boxes from the newest save)
 try:
     import satmap  # noqa: E402  (map positions/bins; wraps satparse at runtime, never edits it)
     MAPS_OK = satmap.available(satparse)
 except Exception:  # pragma: no cover
     satmap, MAPS_OK = None, False
 ASSETS = HERE / 'assets'
-FACTORY_BOXES = 'factories_boxes.json'  # written by make_factory_boxes.py, shipped beside this file
+FACTORY_BOXES = 'factories_boxes.json'  # optional override, your own (hand-made or make_factory_boxes.py); factories_boxes.example.json is only an example
+FACTORY_BOXES_AUTO = 'factories_boxes.auto.json'  # written to the work folder each run when there is no factories_boxes.json
+_BOXES = {'work': None, 'vault': None}  # set by refresh(): where to look for the chosen boxes
 
 
 def say(*a):
@@ -131,9 +185,36 @@ def base_milestones_by_tier(snap):
     return out
 
 
-def whats_next(snap):
+def plan_next_lines(plan, vol):
+    """Your own plan for 'What's next': the next factory and the planned transport changes."""
+    L = []
+    if not plan:
+        return L
+    nf = (plan.get('factories') or {}).get('next') or {}
+    bits = [b for b in (nf.get('name'), nf.get('purpose')) if b]
+    L.append('- Next factory: %s' % (' - '.join(bits) if bits else 'not described yet (add a name and purpose in the dashboard)'))
+    if nf.get('design_url'):
+        L.append('    - design: %s' % nf['design_url'])
+    if nf.get('notes'):
+        L.append('    - notes: %s' % str(nf['notes']).replace('\n', ' '))
+    ex = planmod.exists_map(vol)
+    open_, done = [], []
+    for k, t in sorted((plan.get('transport') or {}).items()):
+        e = ex.get(k) or {}
+        for n in planmod.NETWORKS:
+            if t.get(n) == 'want':
+                (done if e.get(n) else open_).append('%s on %s%s' % (e.get('name') or k, n, (' (%s)' % t['note']) if t.get('note') else ''))
+    L.append('- Planned transport changes still to do: %s' % (str(len(open_)) if open_ else 'none'))
+    L += ['    - [ ] ' + x for x in open_]
+    if done:
+        L.append('- Planned and now done: %d' % len(done))
+        L += ['    - [x] ' + x for x in done]
+    return L
+
+
+def whats_next(snap, plan=None, vol=None):
     """Python mirror of the dashboard's 'What's next' (used for status.md)."""
-    lines = []
+    lines = plan_next_lines(plan, vol)
     sc = snap.get('schematics') or {}
     el = snap.get('space_elevator') or {}
     cur = phase_num(el.get('CurrentGamePhase'))
@@ -141,7 +222,7 @@ def whats_next(snap):
     avail = TIERS_UNLOCKED_BY_PHASE.get(cur, None) if cur is not None else None
     have_ids = set((sc.get('milestones') or []))
     if not sc:
-        return ['- schematics unknown for this snapshot (status %s)' % snap.get('status')]
+        return lines + ['- schematics unknown for this snapshot (status %s)' % snap.get('status')]
     for t in range(1, (avail or sc.get('max_tier') or 0) + 1):
         missing = [n for i, n in MILESTONES.get(t, []) if i not in have_ids]
         if missing:
@@ -220,7 +301,7 @@ def bin_only(save, work):
 
 
 def copy_factory_boxes(vault, warnings):
-    """Copy the shipped factories_boxes.json to the vault folder if it is missing there or older."""
+    """Copy your factories_boxes.json (if any) to the vault folder if it is missing there or older."""
     src = HERE / FACTORY_BOXES
     if not src.is_file():
         return
@@ -233,6 +314,44 @@ def copy_factory_boxes(vault, warnings):
         say('Factory boxes copied to', dst)
     except Exception as e:
         warnings.append('factory boxes copy failed: %s' % e)
+
+
+def boxes_path(work=None, vault=None):
+    """The factory boxes in use: your factories_boxes.json (beside satwatch.py, else in the vault folder)
+    always wins; else the auto-detected work/factories_boxes.auto.json; else None."""
+    work = work or _BOXES['work']; vault = vault or _BOXES['vault']
+    for p in [HERE / FACTORY_BOXES] + ([Path(vault) / FACTORY_BOXES] if vault else []):
+        if p.is_file() and not (read_json(p) or {}).get('source') == 'auto':
+            return p
+    if work and (Path(work) / FACTORY_BOXES_AUTO).is_file():
+        return Path(work) / FACTORY_BOXES_AUTO
+    return None
+
+
+def factory_pass(a, work, vault, latest, warnings):
+    """Auto-detect factory boxes from the newest snapshot unless you supplied factories_boxes.json. Never raises."""
+    _BOXES['work'], _BOXES['vault'] = work, vault
+    auto = Path(work) / FACTORY_BOXES_AUTO
+    try:
+        user = boxes_path(work, vault)
+        if user is not None and user != auto:
+            say('Factory overlay: using your', user)
+            return
+        if not latest or not (latest.get('network') or {}).get('machines'):
+            if auto.is_file():
+                auto.unlink()
+            say('Factory overlay: no machine positions in the latest snapshot (overlay off)')
+            return
+        pts = read_json(Path(work) / 'map_bins' / (Path(latest.get('file') or 'x').stem + '.points.json'))
+        res = satfactories.detect(latest, pts, volume.load_data(), getattr(a, 'factory_eps_m', None) or satfactories.DEFAULT_EPS_M,
+                                  getattr(a, 'factory_min_size', None) or satfactories.DEFAULT_MIN_SIZE)
+        if res['factories']:
+            write_json(auto, res)
+        elif auto.is_file():
+            auto.unlink()
+        say('Factory overlay: %d factories auto-detected (%s)' % (len(res['factories']), latest.get('file')))
+    except Exception:
+        warnings.append('factory auto-detect failed: %s' % traceback.format_exc()[-300:])
 
 
 def needs_depot(snaps_dir, save):
@@ -311,8 +430,7 @@ def volume_pass(latest, vault, warnings, plan=None):
             out['note'] = 'no network data in the latest snapshot (made by satparse %s); run once more or use --reparse-latest' % ((latest or {}).get('parser_version'))
             say('Volume: no network data in the latest snapshot')
             return out
-        bp = HERE / FACTORY_BOXES
-        boxes = read_json(bp) if bp.is_file() else None
+        boxes = factory_boxes()
         t0 = time.time()
         res = volume.compute(latest, boxes)
         res['outpost'] = volume.outpost(latest, boxes)
@@ -391,11 +509,9 @@ def refresh(a):
     warnings, notes = [], []
     if not saves_dir.is_dir():
         warnings.append('saves folder not found: %s' % saves_dir)
-        saves = []
-    else:
-        saves = sorted(saves_dir.glob(a.pattern), key=lambda p: p.stat().st_mtime)
+    saves, used = find_saves(saves_dir, a.pattern)
     say('satwatch %s / satparse %s' % (SATWATCH_VERSION, satparse.PARSER_VERSION))
-    say('Saves: %s  (%d matching %r)' % (saves_dir, len(saves), a.pattern))
+    say('Saves: %s  (%d matching %s)' % (saves_dir, len(saves), used))
     todo = []
     for sv in saves:
         st = sv.stat()
@@ -438,6 +554,7 @@ def refresh(a):
         pass
     map_pass(a, saves, work, vault, latest, warnings)
     copy_factory_boxes(vault, warnings)
+    factory_pass(a, work, vault, latest, warnings)
     depot = depot_pass(snaps_dir, tl, latest, vault, warnings)
     plan, perr = planmod.load(work)
     if perr:
@@ -458,7 +575,7 @@ def refresh(a):
         if latest:
             write_json(vault / 'latest.json', latest)
         write_json(vault / 'timeline.json', tl)
-        write_text(vault / 'status.md', status_md(latest, tl, len(todo), parsed, failed, warnings, a, vol))
+        write_text(vault / 'status.md', status_md(latest, tl, len(todo), parsed, failed, warnings, a, vol, plan))
         say('Vault files updated in', vault)
     except Exception as e:
         warnings.append('could not write vault folder %s: %s' % (vault, e))
@@ -474,8 +591,8 @@ def refresh(a):
 
 
 def factory_boxes():
-    bp = HERE / FACTORY_BOXES
-    return read_json(bp) if bp.is_file() else None
+    bp = boxes_path()
+    return read_json(bp) if bp else None
 
 
 def write_plan_md(vault, plan, vol, warnings):
@@ -505,7 +622,7 @@ def fmt_hours(sec):
     return '%.1f h' % (sec / 3600.0) if isinstance(sec, (int, float)) else 'unknown'
 
 
-def status_md(s, tl, n_new, parsed, failed, warnings, a, vol=None):
+def status_md(s, tl, n_new, parsed, failed, warnings, a, vol=None, plan=None):
     L = ['# Satisfactory status', '', 'Generated: %s by satwatch %s (satparse %s)' % (now_iso(), SATWATCH_VERSION, satparse.PARSER_VERSION), '']
     if not s:
         L += ['No snapshots yet.', '']
@@ -526,7 +643,7 @@ def status_md(s, tl, n_new, parsed, failed, warnings, a, vol=None):
               '- Power generators: %s' % (', '.join('%s %s' % (v, k) for k, v in (s.get('power_generators') or {}).items()) or 'none/unknown'),
               '- Extractors: %s' % (', '.join('%s %s' % (v, k) for k, v in (s.get('extractors') or {}).items()) or 'none/unknown'),
               '']
-        L += ["## What's next", ''] + whats_next(s) + ['']
+        L += ["## What's next", ''] + whats_next(s, plan, vol) + ['']
         if vol and vol.get('available'):
             sm = vol['summary']
             L += ['## Volume items', '', '- %d items: %d in depot, %d on drone, %d on train, %d on none (details: volume_items.md)' % (
@@ -675,10 +792,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
             if u.path == '/api/volume':
                 return self.send(200, json.dumps(c.get('volume') or {'available': False, 'rule': volume.RULE}, default=str), 'application/json')
             if u.path == '/api/factories':
-                for p in (HERE / FACTORY_BOXES, Path(c.get('vault') or HERE) / FACTORY_BOXES):
-                    if p.is_file():
-                        return self.send(200, p.read_text(encoding='utf-8'), 'application/json')
-                return self.send(404, '{"error":"no factories_boxes.json"}', 'application/json')
+                p = boxes_path(c.get('work'), c.get('vault'))
+                if p is not None:
+                    return self.send(200, p.read_text(encoding='utf-8'), 'application/json')
+                return self.send(404, '{"error":"no factory boxes (none auto-detected and no factories_boxes.json)"}', 'application/json')
             if u.path == '/api/mappoints':
                 p = c['work'] / 'map_bins' / 'latest_points.json'
                 if not p.is_file():
@@ -740,7 +857,7 @@ def serve(ctx, a):
 def selftest(a):
     f = Path(a.file) if a.file else None
     if f is None:
-        cands = sorted(Path(a.saves).glob(a.pattern), key=lambda p: p.stat().st_mtime) if Path(a.saves).is_dir() else []
+        cands = find_saves(a.saves, a.pattern)[0]
         if not cands:
             say('SELFTEST FAIL: no save found in %s matching %r' % (a.saves, a.pattern))
             return 1
@@ -775,7 +892,8 @@ def selftest(a):
         ok = False
     try:
         bp = HERE / FACTORY_BOXES
-        vr = volume.compute(s, read_json(bp) if bp.is_file() else None)
+        bx = read_json(bp) if bp.is_file() else satfactories.detect(s, None, volume.load_data())
+        vr = volume.compute(s, bx)
         volinfo = ('volume=OK(%d items)' % vr['summary']['rows']) if vr else 'volume=none'
     except Exception as e:
         volinfo = 'volume=FAIL(%r)' % e
@@ -788,10 +906,10 @@ def selftest(a):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description='Satisfactory save watcher + dashboard (run once).')
-    ap.add_argument('--saves', default=str(DEFAULT_SAVES), help='folder with .sav files')
+    ap.add_argument('--saves', default=DEFAULT_SAVES, help="folder with .sav files (default 'auto': newest SaveGames\\<id> folder)")
     ap.add_argument('--work', default=str(DEFAULT_WORK), help='work folder (snaps\\, state.json, timeline.*)')
     ap.add_argument('--vault-out', default=str(DEFAULT_VAULT_OUT), help='vault output folder (created if missing)')
-    ap.add_argument('--pattern', default=DEFAULT_PATTERN)
+    ap.add_argument('--pattern', default=DEFAULT_PATTERN, help="save file glob (default 'auto': the newest save's session; '*.sav' = all)")
     ap.add_argument('--port', type=int, default=DEFAULT_PORT)
     ap.add_argument('--no-open', action='store_true', help='do not open the browser')
     ap.add_argument('--no-serve', action='store_true', help='refresh files only, then exit')
@@ -802,7 +920,28 @@ def main(argv=None):
     ap.add_argument('--reparse-latest', action='store_true', help='re-parse the newest save even if already parsed')
     ap.add_argument('--backfill-depot', action='store_true', help='re-read older saves (~1 s each) to add depot/recipe/network data')
     ap.add_argument('--backfill-maps', action='store_true', help='re-read older saves (~1 s each) to build missing map bins')
+    ap.add_argument('--factory-eps-m', type=float, default=satfactories.DEFAULT_EPS_M,
+                    help='auto factory overlay: machines closer than this (m) belong to one factory (default %(default)s)')
+    ap.add_argument('--factory-min-size', type=int, default=satfactories.DEFAULT_MIN_SIZE,
+                    help='auto factory overlay: smallest factory, in production buildings (default %(default)s)')
     a = ap.parse_args(argv)
+    if a.saves == 'auto' and not (a.selftest and a.file):
+        root = savegames_root()
+        d = detect_saves_dir(root)
+        if d is None:
+            say('No Satisfactory saves found.')
+            say('Searched: %s\\<id>\\*.sav' % root if os.name == 'nt' else 'Searched: %s/<id>/*.sav (Satisfactory saves are normally on Windows)' % root)
+            say('Play and save once, or point satwatch at your save folder, e.g.:')
+            say('  "Satisfactory Update.bat" --saves "D:\\path\\to\\SaveGames\\<id>"   or   python satwatch.py --saves DIR')
+            return 2
+        a.saves = str(d)
+        auto_dir = True
+    else:
+        auto_dir = False
+    if auto_dir or a.pattern == 'auto':
+        used = find_saves(a.saves, a.pattern)[1] if not (a.selftest and a.file) else a.pattern
+        say('Auto-detected: folder %s%s, saves %s. Override with --saves DIR / --pattern GLOB.' % (
+            a.saves, '' if auto_dir else ' (from --saves)', used))
     if a.selftest:
         return selftest(a)
     ctx = refresh(a)
@@ -874,7 +1013,7 @@ td.n,th.n{text-align:right}#dep h3{margin:10px 0 4px;color:#FA9549;font-size:14p
 <div style="margin-left:auto"><label class="sub">Snapshot&nbsp;</label><select id="pick"></select></div></div><div class="kpis" id="hdr" style="padding:0 22px 10px;margin:0"></div><div class="haz"></div></header>
 <main>
 <section class="card"><h2>Tier &amp; Space Elevator</h2><div class="b" id="pa"></div></section>
-<section class="card"><h2>What's next</h2><div class="b" id="pb"></div></section>
+<section class="card"><h2>What's next</h2><div class="b" id="pbplan"></div><div class="b" id="pb"></div></section>
 <section class="card wide"><h2>Since previous save</h2><div class="b" id="pc"></div></section>
 <section class="card wide"><h2>Dimensional Depot</h2><div class="b" id="dep"><p class="mu">loading...</p></div></section>
 <section class="card wide"><h2>Volume items: where each is stored and moved</h2><div class="b" id="vol"><p class="mu">loading...</p></div></section>
@@ -988,6 +1127,7 @@ function show(sn){
   $("sub").textContent=(h.session_name||"?")+" | "+(sn.file||"?")+" | saved "+(sn.file_mtime||h.save_datetime_utc_guess||"?");
   try{panelA(sn);}catch(e){$("pa").innerHTML='<p class="neg">error: '+esc(e)+'</p>';}
   try{panelB(sn);}catch(e){$("pb").innerHTML='<p class="neg">error: '+esc(e)+'</p>';}
+  try{planNextDraw();}catch(e){console.log(e);}
   try{panelC(sn.file);}catch(e){$("pc").innerHTML='<p class="neg">error: '+esc(e)+'</p>';}
   var r=D.run||{};
   $("ft").innerHTML='parser_version '+esc(sn.parser_version||"?")+' (running satparse '+esc(r.parser_version)+', satwatch '+esc(r.satwatch)+') &middot; generated '+esc(r.generated)+' &middot; new saves this run: '+esc(r.new)+(r.warnings&&r.warnings.length?' &middot; <span class="warn">'+r.warnings.length+' warning(s): '+esc(r.warnings.slice(0,3).join(" | "))+'</span>':'');
@@ -1003,7 +1143,26 @@ function pUrlOk(u){return /^https?:\/\/[^\s]+$/i.test(u||"");}
 function fName(f){return pFac(f.label).name||f.name;}
 function planLoad(){return fetch("/api/plan").then(function(r){return r.json();}).then(function(d){P.d=d;planRefresh();}).catch(function(e){console.log("plan load failed",e);});}
 function planPost(path,body){return fetch(path,{method:"POST",headers:{"Content-Type":"application/json","X-Plan-Token":P.tok},body:JSON.stringify(body)}).then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.error||("HTTP "+r.status));P.d=j;planRefresh();return j;});});}
-function planRefresh(){if(V.d)volDraw();if(M.fac){facChips();if(M.cv)mapDraw();}}
+function planRefresh(){try{planNextDraw();}catch(e){console.log(e);}if(V.d)volDraw();if(M.fac){facChips();if(M.cv)mapDraw();}}
+function planNextDraw(){var e=$("pbplan");if(!e)return;var pn=pl(),nf=pn.factories.next||{},ex=(P.d&&P.d.exists)||{},x="";
+  x+='<h3>&#9670; Next factory</h3>';
+  var has=nf.name||nf.purpose||nf.notes||nf.design_url;
+  if(has){x+='<div><b>'+esc(nf.name||"Unnamed")+'</b>'+(nf.purpose?' &mdash; '+esc(nf.purpose):'')+'</div>';
+    if(nf.notes)x+='<div class="mu" style="white-space:pre-wrap">'+esc(nf.notes)+'</div>';
+    if(pUrlOk(nf.design_url))x+='<div><a class="btn" href="'+esc(nf.design_url)+'" target="_blank" rel="noopener noreferrer">Open design &#128279;</a></div>';}
+  else x+='<p class="mu">Not described yet. Add a name, purpose, notes and a design link.</p>';
+  var np=nextPos();x+='<div class="mu">'+(np?'Position: '+Math.round(np[0]/100)+', '+Math.round(np[1]/100)+' m'+(nf.pos?'':' (pioneer position)'):'No position')+'</div><div><button class="btn" id="pbnxedit">'+(has?'Edit next factory':'Describe next factory')+'</button></div>';
+  var open=[],done=[];
+  Object.keys(pn.transport).sort().forEach(function(k){var t=pn.transport[k],e2=ex[k]||{},nm=e2.name||k;
+    ["depot","drone","train"].forEach(function(n){if(t[n]==="want")(e2[n]?done:open).push({k:k,n:n,nm:nm,note:t.note||""});});});
+  x+='<h3>Planned transport &mdash; '+open.length+' to do'+(done.length?', '+done.length+' done':'')+'</h3>';
+  if(!open.length&&!done.length)x+='<p class="mu">Nothing planned. In Volume items, click a Depot, Drone or Train cell to plan it.</p>';
+  else{x+='<ul>';open.forEach(function(r){x+='<li><span class="ptag">to do</span> '+esc(r.nm)+' on '+r.n+(r.note?' <span class="mu">&mdash; '+esc(r.note)+'</span>':'')+' <button class="btn" data-pbclr="'+esc(r.k)+'" data-pbn="'+r.n+'" title="remove from the plan">&times;</button></li>';});
+    done.forEach(function(r){x+='<li class="mu"><span class="ptag pdone">done</span> '+esc(r.nm)+' on '+r.n+' now exists'+(r.note?' &mdash; '+esc(r.note):'')+' <button class="btn" data-pbclr="'+esc(r.k)+'" data-pbn="'+r.n+'" title="remove from the plan">&times;</button></li>';});x+='</ul>';}
+  e.innerHTML=x;
+  var b=$("pbnxedit");if(b)b.onclick=function(){if(M.fac){nextSelect();}var c=$("facchips");if(c&&c.scrollIntoView)c.scrollIntoView({block:"center"});};
+  Array.prototype.forEach.call(e.querySelectorAll("[data-pbclr]"),function(bt){bt.onclick=function(){planPost("/api/plan/transport",{item:bt.getAttribute("data-pbclr"),network:bt.getAttribute("data-pbn"),state:""}).catch(function(er){alert("plan not saved: "+er.message);});};});
+}
 function planWant(cls,n){return (pl().transport[cls]||{})[n]==="want";}
 function planExists(cls,n){return !!((P.d&&P.d.exists||{})[cls]||{})[n];}
 function planCell(r,n,inner){var c=r["class"]||r.item,w=planWant(c,n),ex=planExists(c,n);
@@ -1259,9 +1418,9 @@ function facChips(){if(!M.fac)return;$("facchips").innerHTML='<span class="mu">F
     e.onclick=function(){if(id==="next"){nextSelect();return;}M.facHide[id]=false;facSelect(id,true);};
     e.oncontextmenu=function(ev){ev.preventDefault();if(id==="next")return;M.facHide[id]=!M.facHide[id];facChips();mapDraw();};});}
 function facLoad(){fetch("/api/factories").then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(d){if(!d||!d.factories||!d.factories.length)return;M.fac=d;
-  var lg=$("maplg");lg.insertAdjacentHTML("beforeend",'<label class="tag" style="border-color:#FA9549"><input type="checkbox" id="facon" checked> <span style="color:#FA9549">&#9633;</span> Factories</label><label class="tag" style="border-color:#FA9549"><input type="checkbox" id="staon" checked> &#9650; train / &#9670; drone stations <span style="color:#FA9549">out</span> <span style="color:#5fb7ff">in</span></label>');
+  var lg=$("maplg");lg.insertAdjacentHTML("beforeend",'<label class="tag" style="border-color:#FA9549"><input type="checkbox" id="facon" checked> <span style="color:#FA9549">&#9633;</span> Factories'+(d.source==="auto"?' <span class="mu">(auto-detected)</span>':'')+'</label><label class="tag" style="border-color:#FA9549"><input type="checkbox" id="staon" checked> &#9650; train / &#9670; drone stations <span style="color:#FA9549">out</span> <span style="color:#5fb7ff">in</span></label>');
   $("facon").onchange=function(){M.facOn=this.checked;$("facchips").style.display=this.checked?"":"none";mapDraw();};$("staon").onchange=function(){M.staOn=this.checked;mapDraw();};
-  var ds=d.derived_from_save||{};$("facnote").textContent=" Factory boxes reflect the "+(ds.date||"?")+" save ("+(ds.file||"?")+"); re-derive after new saves (see README).";
+  var ds=d.derived_from_save||{};$("facnote").textContent=d.source==="auto"?" Factory boxes auto-detected from the newest save ("+(ds.file||"?")+"), refreshed every run; your own factories_boxes.json overrides them (see README).":" Factory boxes from your factories_boxes.json ("+(ds.date||"?")+" save "+(ds.file||"?")+"); re-derive after new saves (see README).";
   facChips();var fm=/fac=(\w+)/.exec(location.hash);if(fm)facSelect(fm[1],true);else mapDraw();}).catch(function(){});}
 function mapInit(){
   fetch("/api/mapmeta").then(function(r){return r.json();}).then(function(m){

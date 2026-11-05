@@ -1,4 +1,5 @@
-"""make_factory_boxes.py - build factories_boxes.json for the satwatch map overlay.
+"""make_factory_boxes.py - build your own factories_boxes.json for the satwatch map overlay
+(factories_boxes.example.json in the release is only an example from one world).
 
 stdlib only. Reads a factories.json (+ raw_objects.json for member
 building positions) and writes one bounding box per factory.

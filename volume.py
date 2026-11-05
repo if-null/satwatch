@@ -9,6 +9,7 @@ train. Unpackage recipes are skipped, except as a note on packaged rows.
 
 Stdlib only. Game data: assets/sf-data1.0-volume.json (trimmed SatisfactoryTools data, MIT, (c) 2019 greeny).
 Usage: python volume.py <save.sav | snapshot.json> [--boxes factories_boxes.json] --out volume_items
+(--boxes defaults to factories_boxes.json beside this file; satwatch.py auto-detects boxes when there is none)
 """
 import argparse, collections, json, math, re, sys
 from pathlib import Path
@@ -47,7 +48,8 @@ def has_network(snap):
     return isinstance((snap or {}).get('network'), dict) and isinstance(snap.get('recipes'), list)
 
 
-# ---------------- factories (boxes from factories_boxes.json) ----------------
+# ---------------- factories (boxes: your factories_boxes.json, else auto-detected by satfactories.py) ----------------
+FACTORY_AUTO = 'factories_boxes.auto.json (auto-detected)'
 def _box(f):
     b = f.get('bbox_cm') or {}
     try:
@@ -100,6 +102,7 @@ def compute(snap, boxes=None, data=None):
         name2cls.setdefault(v[0], c)
     vol = lambda c: c in I and not EXC.search(c)
     U = set(snap.get('recipes') or [])
+    auto = isinstance(boxes, dict) and boxes.get('source') == 'auto'
     boxes = (boxes or {}).get('factories') if isinstance(boxes, dict) else boxes
     res = set(D.get('resources') or [])
     # recipes in use / made at
@@ -244,13 +247,13 @@ def compute(snap, boxes=None, data=None):
     notes = []
     if not net.get('positions'):
         notes.append('no positions captured: Made at / factory labels show F?')
-    if unplaced:
-        notes.append('%d machine(s) outside every factory box (shown as F?); re-derive factories_boxes.json after building a new site' % unplaced)
+    if unplaced and boxes:
+        notes.append('%d machine(s) outside every factory box (shown as F?); %s' % (unplaced, 'auto-detected boxes skip sites with fewer than 3 machines' if auto else 're-derive factories_boxes.json after building a new site'))
     if not boxes:
-        notes.append('factories_boxes.json not found: factory labels show F?')
+        notes.append('no factories detected in this save (and no factories_boxes.json): factory labels show F?')
     return {'volume_version': VERSION, 'rule': RULE, 'save': snap.get('file'), 'play_hours': _hours(snap),
             'summary': summ, 'groups': groups, 'rows': out, 'notes': notes,
-            'boxes_from': ((boxes and isinstance(boxes, list)) and 'factories_boxes.json') or None}
+            'boxes_from': ((boxes and isinstance(boxes, list)) and (FACTORY_AUTO if auto else 'factories_boxes.json')) or None}
 
 
 def _hours(snap):

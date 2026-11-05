@@ -5,3 +5,5 @@ assets/map.webp
 __pycache__/
 *.pyc
 _review_montage.png
+factories_boxes.json
+factories_boxes.auto.json

@@ -7,7 +7,7 @@
  "generated": "2026-11-04T09:59:57-07:00",
  "margin_m": 100.0,
  "eps_cm": 15000,
- "note": "Boxes reflect one save. To re-derive after new saves: re-run the factory analysis to get a new factories.json + raw_objects.json, then: python make_factory_boxes.py --in factories.json --raw raw_objects.json --out factories_boxes.json",
+ "note": "EXAMPLE from one world: copy to factories_boxes.json only to try the overlay. Boxes reflect one save. To re-derive after new saves: re-run the factory analysis to get a new factories.json + raw_objects.json, then: python make_factory_boxes.py --in factories.json --raw raw_objects.json --out factories_boxes.json",
  "factories": [
   {
    "id": "1",

@@ -1,6 +1,16 @@
 # Changelog
 
-## Unreleased (public release prep)
+## 1.4 (satwatch 1.4, 2026-11-04)
+- **No setup needed:** download, unzip, double-click `Satisfactory Update.bat`.
+- Save folder auto-detected: the `SaveGames\<id>` folder with the newest `.sav` (`--saves auto`, the default). If none is found, satwatch says which folder it searched and how to pass `--saves`, and exits with an error so the window stays open.
+- Session auto-detected: `--pattern auto` (the default) tracks the newest save's session (`<session>_*.sav` plus `<session>.sav`); names without a session part fall back to `*.sav`. One line tells what was detected. Explicit `--saves` / `--pattern` still win; `*.sav` still works.
+- Launchers: if Python is not found, install Python 3.12 per-user with winget, then re-detect (also checks `%LOCALAPPDATA%\Programs\Python\Python3*`); otherwise show the python.org link and pause. `SATWATCH_ARGS` is now optional.
+- `factories_boxes.json` renamed to `factories_boxes.example.json` in the release, and `factories_boxes.json` added to `.gitignore`. - **Automatic factory overlay:** new `satfactories.py` detects factories from the newest save on every run (production buildings within 150 m grouped by single linkage, groups under 3 machines dropped, extractors/drone ports/train stations attached within 300 m, numbered F1.. by size, named from their main products, 100 m margin) and writes `factories_boxes.auto.json` (marked `"source": "auto"`) to the work folder. The map overlay, `/api/factories`, the Volume "Made at" column and plan.md use it when you have no `factories_boxes.json`; your own `factories_boxes.json` (satwatch folder or vault) always wins. New flags `--factory-eps-m` and `--factory-min-size`. The map legend says "Factories (auto-detected)". `make_factory_boxes.py` stays as an optional power tool.
+
+- **What's next now shows your plan:** the panel starts with your Next factory (name, purpose, notes, design link, position, with an Edit button that opens its card on the map) and the Planned transport list: every Depot/Drone/Train cell you marked as planned, as "to do" until the newest save shows it, then "done". An x button removes an entry. The same lines are written to `status.md`. This answers "what did I finish and what was I going to do next" after a long break.
+- **Map image cache fix:** the map image address now carries the file's size and date, so replacing `assets/map.jpg` always shows the new image even if the browser cached the old one.
+
+## Public release prep
 - Public release: default save folder is auto-detected under `%LOCALAPPDATA%\FactoryGame\Saved\SaveGames\<id>`, default pattern is `*.sav`, default vault folder is `%USERPROFILE%\Documents\satwatch\data`. The `.bat` launchers gained a `SATWATCH_ARGS` / `PYEXE` settings block.
 
 ## 1.3
@@ -13,7 +23,7 @@
 
 ## 1.2
 - **Volume items** panel on the dashboard (same table as the tracker Page, now computed live from your newest save): summary tiles, filters (All / Not on any network or depot / No drone route / No train), header pinned above a 560 px scroll box, amber tier bands with counts, a "packaged" badge, and hover / focus (Tab) / tap detail lines showing what each item makes (★in save = a factory in the save runs that recipe).
-- Columns: Item, Level, Made at (F1-F13 from `factories_boxes.json`), Depot amount, Drone network (paired routes, plus "port only" for unpaired ports), Train network (timetable stops and platforms).
+- Columns: Item, Level, Made at (F1-F13 from `factories_boxes.json`, optional since 1.4), Depot amount, Drone network (paired routes, plus "port only" for unpaired ports), Train network (timetable stops and platforms).
 - Every run writes `volume_items.json` and `volume_items.md` to the vault folder and adds a one-line "Volume items" section to `status.md`. `/api/volume` returns the same data.
 - **Outpost at the pioneer** panel: player position and nearest factory box with distance. (Resource nodes and inventory are not included yet.)
 - `satparse.py` 0.4 adds an additive `network` field to snapshots: machine recipes and positions, drone ports (name, pairing, inventories), train stations, timetables, freight platforms and the player position. It also decodes TextProperty values (station names). The first run after updating re-parses the newest save once (about 1 s).

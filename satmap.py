@@ -226,7 +226,14 @@ def meta(work, n_snapshots=None, assets_dir=None):
     lst = list_bins(work)
     img = pick_image(assets_dir)
     attr = MAP_ATTRIBUTION_PLACEHOLDER if img == 'map_placeholder.png' else MAP_ATTRIBUTION_CUSTOM % img
-    return {'bounds_cm': {'x0': MAP_X0, 'x1': MAP_X1, 'y0': MAP_Y0, 'y1': MAP_Y1}, 'image': '/assets/' + img, 'placeholder': img == 'map_placeholder.png',
+    ver = ''
+    try:  # cache-buster: a replaced map.jpg always shows up, even if the browser cached the old file
+        if assets_dir:
+            st = os.stat(os.path.join(str(assets_dir), img))
+            ver = '?v=%d-%d' % (st.st_size, int(st.st_mtime))
+    except OSError:
+        pass
+    return {'bounds_cm': {'x0': MAP_X0, 'x1': MAP_X1, 'y0': MAP_Y0, 'y1': MAP_Y1}, 'image': '/assets/' + img + ver, 'placeholder': img == 'map_placeholder.png',
             'image_px': MAP_IMAGE_PX, 'bin_cm': BIN_CM, 'categories': CATS, 'colors': COLORS,
             'attribution': attr, 'source_url': MAP_SOURCE_URL, 'snapshots': lst,
             'snapshots_total': n_snapshots, 'snapshots_with_bins': len(lst)}

@@ -14,54 +14,52 @@ satwatch reads your Satisfactory `.sav` files and turns them into a dashboard in
 > Unofficial fan tool. Satisfactory is (c) Coffee Stain Studios. satwatch is not affiliated with or endorsed by Coffee Stain Studios.
 
 ## Contents
-[Requirements](#requirements) · [Install](#install) · [Configure](#configure) · [First run](#first-run) · [The launchers](#the-launchers) · [Where data is stored](#where-data-is-stored) · [After each save](#after-each-save) · [Command-line flags](#command-line-flags) · [Panels](#panels) · [Plan grid](#plan-grid-and-planjson) · [Map](#map) · [Factory overlay](#factory-overlay) · [Depot gap check](#dimensional-depot-gap-check) · [Troubleshooting](#troubleshooting) · [Privacy](#privacy) · [Limitations](#limitations-and-known-gaps) · [Credits](#data-credits) · [License](#license) · [Changelog](CHANGELOG.md)
+[Requirements](#requirements) · [Install](#install) · [Optional settings](#optional-settings) · [The launchers](#the-launchers) · [Where data is stored](#where-data-is-stored) · [After each save](#after-each-save) · [Command-line flags](#command-line-flags) · [Panels](#panels) · [Plan grid](#plan-grid-and-planjson) · [Map](#map) · [Factory overlay](#factory-overlay) · [Depot gap check](#dimensional-depot-gap-check) · [Troubleshooting](#troubleshooting) · [Privacy](#privacy) · [Limitations](#limitations-and-known-gaps) · [Credits](#data-credits) · [License](#license) · [Changelog](CHANGELOG.md)
 
 ## Requirements
 - Windows PC with Satisfactory 1.0 or 1.1 saves (the launchers are Windows `.bat` files; the Python code also runs on other systems if you pass the folders as flags).
-- Python 3 from [python.org](https://www.python.org/downloads/). Developed on Python 3.14 and also tested on 3.13; a recent 3.x is recommended.
+- Python 3. The launchers find it, or install it with winget if it is missing (otherwise get it from [python.org](https://www.python.org/downloads/)). Developed on Python 3.14 and also tested on 3.13; a recent 3.x is recommended.
 - No `pip install`, no packages, no internet connection. Standard library only.
 - A modern browser (Chrome, Edge, Firefox).
 
 ## Install
-1. Install Python 3. Either install it to `C:\Python314` (the launchers check there first), or tick "Add python.exe to PATH" in the installer, or use the `py` launcher that python.org installs.
-2. Download this repository (green **Code** button, then **Download ZIP**) and unzip it to any folder, for example `%USERPROFILE%\satwatch`.
-3. Check where your saves are. Satisfactory keeps them in `%LOCALAPPDATA%\FactoryGame\Saved\SaveGames\<id>` (paste `%LOCALAPPDATA%\FactoryGame\Saved\SaveGames` into Explorer's address bar). `<id>` is a long number for your game account.
-4. If you have more than one `<id>` folder or more than one save series, set it up as described in [Configure](#configure).
-5. Double-click **Satisfactory Update.bat**.
+1. Download this repository (green **Code** button, then **Download ZIP**) and unzip it to any folder.
+2. Double-click **Satisfactory Update.bat**.
 
-## Configure
-Defaults (set at the top of `satwatch.py`):
+That's it. On the first run the launcher:
+- finds Python 3 (`C:\Python314`, your user Python under `%LOCALAPPDATA%\Programs\Python`, `py -3` or `python`). If there is none, it installs Python 3.12 for your user with `winget` (no admin needed). If winget is not available, it shows the [python.org](https://www.python.org/downloads/) link and waits; install Python and double-click the .bat again.
+- finds your save folder: the `%LOCALAPPDATA%\FactoryGame\Saved\SaveGames\<id>` folder holding your most recently modified `.sav`.
+- tracks the session you played most recently: it reads the session name from the newest save (`<session>_<date>-<time>.sav` or `<session>_autosave_N.sav`) and uses `<session>_*.sav` (plus `<session>.sav` if present). If the newest save's name has no session part, it uses every `*.sav`.
+- prints one line saying which folder and session it picked, parses the saves (about 1 s each), prints `Dashboard: http://127.0.0.1:8777/` and opens your browser there.
+
+Leave the window open while you use the dashboard. Press Ctrl+C or close the window to stop it. If no saves are found, the window says which folder it searched and how to point satwatch elsewhere, and stays open.
+
+Play another session later and the dashboard follows it automatically on the next run.
+
+## Optional settings
+Nothing here is required. Defaults:
 
 | Setting | Default | Flag |
 |---|---|---|
-| Save folder | the single `<id>` folder under `%LOCALAPPDATA%\FactoryGame\Saved\SaveGames` that contains `.sav` files (if there is not exactly one, the `SaveGames` folder itself, which has no saves, so set `--saves`) | `--saves DIR` |
-| Save files | `*.sav` (every save in the folder) | `--pattern GLOB` |
+| Save folder | `auto`: the `<id>` folder under `%LOCALAPPDATA%\FactoryGame\Saved\SaveGames` with the newest `.sav` | `--saves DIR` |
+| Save files | `auto`: the newest save's session (`<session>_*.sav`); `*.sav` = every save in the folder | `--pattern GLOB` |
 | Work folder | `%USERPROFILE%\satisfactory-work` | `--work DIR` |
 | Vault / output folder | `%USERPROFILE%\Documents\satwatch\data` | `--vault-out DIR` |
 | Port | 8777 (or the next free one up to 8796) | `--port N` |
-| Python | `C:\Python314\python.exe`, else `py -3`, else `python` | `PYEXE` in the .bat |
+| Factory overlay: grouping distance | 150 m (machines closer than this are one factory) | `--factory-eps-m M` |
+| Factory overlay: smallest factory | 3 production buildings | `--factory-min-size N` |
+| Python | auto-detected (see above), installed with winget if missing | `PYEXE` in the .bat |
 
-Your folder probably holds several sessions plus autosaves. To track one session, use a pattern that matches its save names, e.g. `--pattern "MySave*.sav"` (Satisfactory names saves `<session>_<date>-<time>.sav` and autosaves `<session>_autosave_N.sav`).
+An explicit `--saves` or `--pattern` always wins over auto-detection. Two ways to set them:
+- **Pass flags** from a command prompt in the satwatch folder: `"Satisfactory Update.bat" --pattern "MySave_*.sav"` or `python satwatch.py --saves "D:\saves" --pattern "*.sav"`.
+- **Power users:** each `.bat` has an optional `SATWATCH_ARGS` line and an optional `PYEXE` line near the top, for example `set SATWATCH_ARGS=--pattern "MySave_*.sav"`. Leave them empty for auto-detection. Flags given after the .bat name are added after `SATWATCH_ARGS`.
 
-There are two ways to change settings:
-- **Edit the .bat files** (simplest for double-clicking). Open each `.bat` in Notepad and fill in the settings line near the top, for example:
-
-      set SATWATCH_ARGS=--saves "%LOCALAPPDATA%\FactoryGame\Saved\SaveGames\12345678901234567" --pattern "MySave*.sav"
-      set "PYEXE=C:\Python312\python.exe"
-
-  Use the same `SATWATCH_ARGS` in all four launchers. For `PYEXE`, use a path without spaces (or leave it empty to auto-detect).
-- **Pass flags** from a command prompt in the satwatch folder: `"Satisfactory Update.bat" --pattern "MySave*.sav"` or `python satwatch.py --saves "D:\saves" --pattern "MySave*.sav"`. Flags given after the .bat name are added after `SATWATCH_ARGS`.
-
-## First run
-1. Double-click **Satisfactory Update.bat**. A console window opens.
-2. satwatch parses every matching save it has not seen (about 1 s per save), prints a line per save, and writes its files.
-3. It prints `Dashboard: http://127.0.0.1:8777/` and opens your browser there.
-4. Leave the window open while you use the dashboard. Press Ctrl+C or close the window to stop it.
+**Switching sessions:** saves already parsed stay in the work folder's `snaps\` and `state.json` (keyed by file name), so nothing is lost or corrupted when the auto-detected session changes; only the current session's saves are parsed. The timeline and history panels are built from all snapshots in `snaps\`, so they can show earlier sessions too. To keep sessions fully apart, pass `--pattern` and a separate `--work` folder per session.
 
 Check the parser on one save with `python satwatch.py --selftest` (newest save) or `--selftest --file "path\to\save.sav"`. It prints OK or FAIL and exits with 0 or 1; it also checks the map capture.
 
 ## The launchers
-All four use the same Python lookup and `SATWATCH_ARGS`, pass any extra flags through, and keep the window open if satwatch exits with an error.
+All four use the same Python lookup (and winget install if needed), the same auto-detection and the optional `SATWATCH_ARGS`, pass any extra flags through, and keep the window open if satwatch exits with an error.
 
 | File | Runs | Use it for |
 |---|---|---|
@@ -73,8 +71,8 @@ All four use the same Python lookup and `SATWATCH_ARGS`, pass any extra flags th
 ## Where data is stored
 satwatch only **reads** the save folder. It writes to two folders of its own:
 
-- **Work folder** (`%USERPROFILE%\satisfactory-work`): `snaps\<save>.json` (one parsed snapshot per save), `state.json` (which saves were parsed), `timeline.csv` / `timeline.json`, `map_bins\`, `plan.json` and `plan_backups\` (your plan, see below), `inventory_peaks.json` (most of each collectible ever carried).
-- **Vault / output folder** (`%USERPROFILE%\Documents\satwatch\data`): readable summaries for notes apps such as Obsidian: `latest.json`, `timeline.json`, `status.md`, `depot_gap.json/.md`, `volume_items.json/.md`, `plan.md` (read-only copy of your plan), `latest_points.json`, `map_summary.json` and `factories_boxes.json`. It is created if missing.
+- **Work folder** (`%USERPROFILE%\satisfactory-work`): `snaps\<save>.json` (one parsed snapshot per save), `state.json` (which saves were parsed), `timeline.csv` / `timeline.json`, `map_bins\`, `factories_boxes.auto.json` (the auto-detected factory overlay, rewritten every run), `plan.json` and `plan_backups\` (your plan, see below), `inventory_peaks.json` (most of each collectible ever carried).
+- **Vault / output folder** (`%USERPROFILE%\Documents\satwatch\data`): readable summaries for notes apps such as Obsidian: `latest.json`, `timeline.json`, `status.md`, `depot_gap.json/.md`, `volume_items.json/.md`, `plan.md` (read-only copy of your plan), `latest_points.json`, `map_summary.json` and, if you made your own factory boxes, a copy of your `factories_boxes.json`. It is created if missing.
 - Optional: a `todo.md` in the folder **above** the vault folder (default `%USERPROFILE%\Documents\satwatch\todo.md`) is shown read-only in the To-do panel.
 
 Snapshots stay after you delete old saves, so your history keeps growing even though the game rotates autosaves.
@@ -99,11 +97,14 @@ Save in game (or let it autosave), then double-click **Satisfactory Update.bat**
 | `--backfill-depot` | Re-read older saves to add depot/recipe/network data. |
 | `--maps` / `--no-maps` | Bin building positions of new saves for the map (default on) / skip it. |
 | `--backfill-maps` | Re-read older saves to build missing map bins. |
+| `--factory-eps-m M` | Auto factory overlay: production buildings closer than M metres belong to one factory (default 150). |
+| `--factory-min-size N` | Auto factory overlay: ignore groups with fewer than N production buildings (default 3). |
 
 Standalone helpers (same folder):
 - `python satparse.py <save.sav | folder> --out <dir | file.jsonl> [--timeline] [--pattern "MySave*"] [--skip-existing]`
 - `python depotgap.py <save.sav | snapshot.json> --out depot_gap [--low 1] [--data file]`
 - `python volume.py <save.sav | snapshot.json> --out volume_items [--boxes factories_boxes.json]`
+- `python satfactories.py <snapshot.json> [--points <save>.points.json] [--eps-m 150] [--min-size 3] [--out boxes.json]` (prints the auto-detected factories)
 - `python make_factory_boxes.py --in factories.json --raw raw_objects.json --out factories_boxes.json [--margin-m 100] [--todo todo.md]` (see [Factory overlay](#factory-overlay))
 
 ## Panels
@@ -111,7 +112,7 @@ Screenshots of every panel: [docs/index.html](docs/index.html).
 
 - **Header:** session, save file and time, play time, last save, start date, buildings and saves parsed. The **Snapshot** selector switches the panels to an older snapshot.
 - **Tier & Space Elevator:** highest tier, tiers available, elevator phase delivered, building/milestone/schematic counts, milestones per tier, and a bar per part paid toward the current phase.
-- **What's next:** what is still missing in tiers 1-8, the current elevator phase (need / paid / remaining) and the milestones coming in the next tier.
+- **What's next:** your own plan first (the Next factory with its design link and notes, and every Volume item you marked planned, shown as to do or done), then what is still missing in tiers 1-8, the current elevator phase (need / paid / remaining) and the milestones coming in the next tier.
 - **Since previous save:** what changed against the previous snapshot (buildings, milestones, session change).
 - **Dimensional Depot:** gap and low items against everything you can build, uploaders built, new and resolved items since the previous depot snapshot (see [below](#dimensional-depot-gap-check)).
 - **Volume items:** one row per intermediate item: tier, which factory makes it, amount in the depot, drone routes and train stops carrying it, with filters and the transport plan (see [Plan grid](#plan-grid-and-planjson)).
@@ -140,7 +141,7 @@ The Volume items panel doubles as a transport planning grid, and factory cards h
 ### Volume rule
 A row is any item that is an ingredient of an unlocked machine recipe whose product is a part, fluid, fuel or Space Elevator / project part. Buildings, decorations, equipment, ammo, nobelisks, rebar, filters, medical items, power shards, alien and biomass items don't count, as rows or as consumers. Raw resources are not rows. Fluids are not rows; their packaged forms are, when used in a volume recipe or shipped by drone or train. Unpackage recipes are skipped, except as a note on packaged rows.
 - Tier = the lowest milestone (or tutorial) tier that unlocks a standard (non-alternate) machine recipe for the item; a default recipe needing no unlock is Tier 0; items only reachable through MAM / alternates are "MAM / alternate-only". Hand-set: Plastic 5, Rubber 5, Empty Canister 5, Empty Fluid Tank 8.
-- Made at: each machine joins the factory box it sits in (nearest centroid if boxes overlap), else the nearest box within 300 m, else `F?`. A new site outside all boxes shows `F?` until you re-derive `factories_boxes.json`.
+- Made at: each machine joins the factory box it sits in (nearest centroid if boxes overlap), else the nearest box within 300 m, else `F?`. With the automatic overlay a new site gets its own box on the next run once it has 3 or more production buildings; with your own `factories_boxes.json` a new site shows `F?` until you update that file.
 - Drone routes are `F<src> "<source port>" -> F<dst> "<port>"` for each item in the destination port's inventories. Train entries are timetable stops (load/unload) and freight platforms holding the item (each platform belongs to its nearest station).
 - Game data: `assets/sf-data1.0-volume.json` (50 KB), trimmed from SatisfactoryTools `data/data1.0.json` (https://github.com/greeny/SatisfactoryTools, MIT License, Copyright (c) 2019 greeny; game names (c) Coffee Stain Studios).
 - Standalone: `python volume.py <save.sav | snapshot.json> --out volume_items`.
@@ -165,12 +166,13 @@ To see them on a real map:
 
 ## Factory overlay
 - **What it shows:** the map's "Factories" layer draws a box around each factory (F1, F2, ...) labelled "F# name". Train stations are triangles and drone ports are diamonds (orange = output, blue = input, grey = unnamed/other, red = conflict). Hover a box for its name, size, key recipes, building counts, stations and warnings; click a box or chip to open its card and zoom to it; right-click a chip to hide it. The Volume panel's "Made at" column uses the same boxes.
-- **Data source:** `factories_boxes.json` beside satwatch.py, copied to the vault folder on each run if the copy there is missing or older. The dashboard reads the satwatch-folder copy first, then the vault copy; if neither exists the layer does not appear.
-- **Important for new users:** the shipped `factories_boxes.json` describes the author's own world (13 factories from one save). On your save the boxes will be in the wrong places and "Made at" will be wrong. Delete or rename `factories_boxes.json` (and the vault copy) to turn the layer off, or make your own (below). Boxes do not move when you build more.
-- **Box:** covers a factory's production buildings (clustered at 150 m), the extractors attached to it (nearest member within 300 m) and its stations, plus a 100 m margin.
+- **Automatic.** On every run satwatch detects the factories in your newest save and writes `factories_boxes.auto.json` to the work folder (one log line: `Factory overlay: N factories auto-detected`). No extra files or steps. The legend shows "Factories (auto-detected)". If the save has no qualifying group of machines, the map has no Factories layer and "Made at" shows `F?`.
+- **How detection works** (`satfactories.py`): production buildings (constructors, assemblers, smelters, foundries, manufacturers, refineries, packagers, blenders, particle accelerators, converters, quantum encoders) are grouped by single linkage: machines closer than 150 m (`--factory-eps-m`) are one factory. Groups with fewer than 3 production buildings (`--factory-min-size`) are dropped, so a lone machine is not a factory. Extractors, drone ports and train stations join the factory whose nearest machine is within twice that distance. Factories are numbered F1, F2, ... by size, largest first, and named after their main products (what they ship by drone or train first, then what they make and do not use up themselves), for example "Motor" or "Rubber / Plastic". The box covers all members plus 100 m. Warnings list unpaired drone ports and input stations whose items no recipe in the factory uses.
+- **Your own boxes win.** Put your own `factories_boxes.json` beside satwatch.py (or in the vault folder) and it is used instead of the automatic one, for the map, "Made at" and plan.md; it is never overwritten. The satwatch-folder copy is copied to the vault folder on each run if the copy there is missing or older. `factories_boxes.json` is in `.gitignore`, so your own file is never committed.
+- **Example:** `factories_boxes.example.json` shows the file format (13 factories from one save). Copying it to `factories_boxes.json` replaces the automatic boxes with that world's boxes, which will be in the wrong places on your save.
 
 ### Making your own boxes
-`make_factory_boxes.py` builds `factories_boxes.json` from a factory analysis (`factories.json` listing each factory and its members, plus `raw_objects.json` with member positions). The scripts that produced that analysis are **not** part of this repo, so you need to produce those two files yourself (the expected fields are visible in `make_factory_boxes.py`). Then:
+Optional power tool. `make_factory_boxes.py` builds `factories_boxes.json` from a factory analysis (`factories.json` listing each factory and its members, plus `raw_objects.json` with member positions). The scripts that produced that analysis are **not** part of this repo, so you need to produce those two files yourself (the expected fields are visible in `make_factory_boxes.py`). Then:
 
     python make_factory_boxes.py --in factories.json --raw raw_objects.json --out factories_boxes.json [--margin-m 100] [--todo todo.md]
 
@@ -184,12 +186,12 @@ Rule: *every item required to build anything unlocked must be in the depot; any 
 - Game data: `assets/sf-data1.0-depot.json` is a trimmed copy of SatisfactoryTools data (item name/stack size, recipe name/forBuilding/ingredients). About 143 unlocked recipes, such as customizer and newer items, are not in that file and are ignored.
 
 ## Troubleshooting
-- **"ERROR: Python not found":** install Python 3 to `C:\Python314`, tick "Add to PATH", or set `PYEXE` in the .bat files.
-- **"0 matching" saves / empty dashboard:** the save folder or pattern is wrong. Set `--saves` to your `SaveGames\<id>` folder and check `--pattern` (see [Configure](#configure)).
-- **Two sessions mixed together:** narrow `--pattern` to one session name.
+- **"Python 3 could not be installed automatically":** winget is missing or failed. Install Python 3 from https://www.python.org/downloads/ and double-click the .bat again (or set the optional `PYEXE`).
+- **"No Satisfactory saves found" / wrong session:** save once in the game, or pass `--saves` and `--pattern` (see [Optional settings](#optional-settings)).
+- **Two sessions mixed in the history:** see "Switching sessions" in [Optional settings](#optional-settings).
 - **Port busy:** satwatch tries 8777 to 8796; or set `--port`.
 - **Wrong numbers:** run `--selftest`. To force a re-parse, use `--reparse-latest`, or delete `state.json` and the snapshot json in `snaps\`.
-- **Factory boxes in odd places:** you are seeing the shipped example boxes; see [Factory overlay](#factory-overlay).
+- **Factory boxes in odd places:** you may have copied the example to `factories_boxes.json`; delete it (and the vault copy) to go back to the automatic boxes. If two factories merge or one splits, try `--factory-eps-m 100` or `200`, see [Factory overlay](#factory-overlay).
 - **Map buildings shifted on your own map image:** adjust `MAP_X0..MAP_Y1` in `satmap.py`.
 - **Pre-1.0 saves (save version 46):** their elevator phases and tiers may not match the 1.0/1.1 tables.
 - **Window closes immediately:** run the .bat from a command prompt to read the message.
@@ -204,7 +206,7 @@ Rule: *every item required to build anything unlocked must be in the depot; any 
 - **Wiki data** (satisfactory.wiki.gg, checked 2026-11-04): milestone names for Tiers 1-9 come from the Milestones page; Space Elevator phase 1-5 costs (default multiplier) from the Space Elevator page. **Not on the wiki:** mapping save IDs (`Schematic_T-N_C`) to milestone names comes from the game data (`data1.0.json`); sub-unlock IDs such as `Schematic_5-1-1_C` are ignored. Mapping `Desc_SpaceElevatorPart_N_C` to part names comes from game knowledge; unmatched items are shown raw. A non-default elevator cost multiplier is not accounted for.
 - About 143 unlocked recipes (customizer and newer items) are missing from the trimmed depot data and are ignored by the gap check.
 - The Outpost panel does not include resource nodes or inventory yet.
-- Factory boxes are not detected automatically; the analysis that feeds `make_factory_boxes.py` is not included.
+- Automatic factory boxes are plain distance clusters: two factories built within 150 m of each other become one, a spread-out factory can split, and boxes are axis-aligned rectangles (they can overlap). Names come from recipes, not from your station names. The analysis that feeds `make_factory_boxes.py` is not included.
 - Map history needs the old .sav files; snapshots alone cannot be re-binned.
 - No real map image is included (see [Using a better map](#using-a-better-map)).
 
