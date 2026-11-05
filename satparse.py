@@ -2,7 +2,7 @@
 """satparse.py - stdlib-only Satisfactory .sav snapshot extractor + timeline builder.
 
 Usage:
-  python satparse.py <save.sav | folder> --out <dir | file.jsonl> [--pattern "Miners*"]
+  python satparse.py <save.sav | folder> --out <dir | file.jsonl> [--pattern "MySave*"]
   python satparse.py --timeline <snapshot dir | file.jsonl> --out <dir>
 Every parse stage is wrapped; failures become entries in snapshot["warnings"] and
 the snapshot is still written with whatever was recovered (status = ok|partial|unparsed).

@@ -3,7 +3,7 @@
 Rule: every item required to build anything unlocked must be in the depot;
 any unlocked item not in the depot goes on the to-do list.
 
-Based on Helm's /workspace/depotgap.py: same logic (build-gun recipes from the
+Based on an earlier standalone depotgap.py: same logic (build-gun recipes from the
 unlocked recipe list -> their ingredients; GAP = stock 0, LOW = stock under
 --low stacks), but it works from a satparse >= 0.3 snapshot (snap['depot'],
 snap['recipes']) so satwatch can call it after every parse.

@@ -1,0 +1,59 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>satwatch: a local dashboard for your Satisfactory saves</title>
+<style>
+:root{--bg:#141414;--card:#2b2d30;--fg:#e8e8e8;--mut:#a8a8a8;--or:#fa9549}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,Segoe UI,Roboto,sans-serif}
+header{border-bottom:6px solid var(--or);padding:28px 20px;background:#1b1b1b}
+.w{max-width:1100px;margin:0 auto;padding:0 16px}h1{color:var(--or);margin:0 0 6px;letter-spacing:.04em;text-transform:uppercase}
+h2{background:var(--or);color:#111;padding:6px 12px;margin:36px 0 12px;font-size:16px;text-transform:uppercase;letter-spacing:.05em}
+a{color:#7cc4ff}.btn{display:inline-block;background:var(--or);color:#111;padding:8px 14px;font-weight:700;text-decoration:none;margin:8px 8px 0 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}.c{background:var(--card);padding:12px 14px;border-left:3px solid var(--or)}
+.c b{color:var(--or)}figure{margin:0 0 22px}figure img{width:100%;height:auto;border:1px solid #444;display:block}figcaption{color:var(--mut);font-size:14px;margin-top:6px}
+nav{position:sticky;top:0;background:#1b1b1bee;padding:8px 0;font-size:14px;z-index:2}nav a{margin-right:12px}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}footer{color:var(--mut);font-size:13px;padding:30px 0;border-top:1px solid #333;margin-top:40px}
+code{background:#222;padding:1px 4px}
+</style></head><body>
+<header><div class="w"><h1>satwatch</h1>
+<p>A local dashboard for your Satisfactory saves. It reads your <code>.sav</code> files and shows progress, a building map, Dimensional Depot gaps, where every item is stored and moved, and a planning grid. Runs only on your PC: Python standard library, served on 127.0.0.1, no network, never writes to your saves.</p>
+<a class="btn" href="demo.html">Open the interactive demo</a><a class="btn" href="https://github.com/if-null/satwatch">Get it on GitHub</a></div></header>
+<nav><div class="w"><a href="#features">Features</a><a href="#progress">Progress</a><a href="#depot">Depot</a><a href="#volume">Volume &amp; plan</a><a href="#map">Map</a><a href="#history">History</a><a href="#more">More</a><a href="#mobile">Mobile</a></div></nav>
+<main class="w">
+<p>All screenshots below are real output from one 230-hour save (1.1, 16,021 buildings), rendered on the bundled placeholder map. Only one save was available for these pages, so the history charts show a single point; with your own save series they fill in over time.</p>
+<h2 id="features">What it does</h2>
+<div class="grid">
+<div class="c"><b>Tier &amp; Space Elevator</b><br>Milestones per tier, elevator phase and parts still to deliver.</div>
+<div class="c"><b>Milestone history</b><br>When each milestone first appeared across your saves.</div>
+<div class="c"><b>Factory census</b><br>Buildings by category, with bars.</div>
+<div class="c"><b>Inventory &amp; collectibles</b><br>Hard drives, somersloops, mercer spheres, power slugs: carried, peak, still in the world.</div>
+<div class="c"><b>Dimensional Depot gaps</b><br>Every buildable ingredient that is missing or low in the depot, with new/resolved diff.</div>
+<div class="c"><b>Volume items</b><br>For each item: tier, which factory makes it, depot amount, drone routes, train stops.</div>
+<div class="c"><b>Transport &amp; factory plan</b><br>Mark depot/drone/train wants, store factory designs and a next-factory marker in <code>plan.json</code>.</div>
+<div class="c"><b>Building map</b><br>Heatmap and 50 m cells by category, factory boxes, stations, drone ports, snapshot slider.</div>
+<div class="c"><b>Insights</b><br>Progress charts, what changed since the last save, what the parser couldn't read.</div>
+</div>
+<h2 id="progress">Progress</h2>
+<figure><img src="img/dashboard_top.png" alt="Header and progress panels" loading="lazy"><figcaption>Header (play time, last save, buildings) with Tier &amp; Space Elevator and What's next.</figcaption></figure>
+<div class="two"><figure><img src="img/tier.png" alt="Tier and Space Elevator panel" loading="lazy"><figcaption>Tier &amp; Space Elevator: tiers 1-8 complete, phase 4 parts paid.</figcaption></figure>
+<figure><img src="img/next.png" alt="What's next panel" loading="lazy"><figcaption>What's next: remaining Propulsion parts and the Tier 9 milestones.</figcaption></figure></div>
+<figure><img src="img/since.png" alt="Since previous save" loading="lazy"><figcaption>Since previous save.</figcaption></figure>
+<h2 id="depot">Dimensional Depot</h2>
+<figure><img src="img/depot.png" alt="Dimensional Depot gap panel" loading="lazy"><figcaption>0 gap items, 4 low items, 47 uploaders built.</figcaption></figure>
+<h2 id="volume">Volume items &amp; transport plan</h2>
+<figure><img src="img/volume.png" alt="Volume items grid" loading="lazy"><figcaption>63 items: 52 in the depot, 8 on drones, 6 on trains, 11 on no network. Click a cell to plan it.</figcaption></figure>
+<figure><img src="img/outpost.png" alt="Outpost panel" loading="lazy"><figcaption>Outpost at the pioneer: nearest factory and distance.</figcaption></figure>
+<h2 id="map">Factory map</h2>
+<figure><img src="img/map.png" alt="Factory map on placeholder grid" loading="lazy"><figcaption>Buildings, 13 factory boxes, train stations and drone ports, on the plain placeholder map. Add your own map image for terrain.</figcaption></figure>
+<h2 id="history">History</h2>
+<figure><img src="img/progress.png" alt="Progress over time charts" loading="lazy"><figcaption>Progress over time (one point here; one per save in real use).</figcaption></figure>
+<div class="two"><figure><img src="img/milestones.png" alt="Milestone history" loading="lazy"><figcaption>Milestone history.</figcaption></figure>
+<figure><img src="img/census.png" alt="Factory census" loading="lazy"><figcaption>Factory census.</figcaption></figure></div>
+<h2 id="more">Inventory &amp; parser notes</h2>
+<div class="two"><figure><img src="img/inventory.png" alt="Inventory and collectibles" loading="lazy"><figcaption>Inventory &amp; collectibles.</figcaption></figure>
+<figure><img src="img/parser.png" alt="Parser caveats" loading="lazy"><figcaption>What the parser couldn't read: honest about gaps.</figcaption></figure></div>
+<h2 id="mobile">On a phone</h2>
+<figure style="max-width:360px"><img src="img/mobile.png" alt="Dashboard on a phone-sized screen" loading="lazy"><figcaption>The dashboard on a phone-sized screen.</figcaption></figure>
+<h2>Get started</h2>
+<p>Windows + Python 3, no installs. Download the repo, double-click <b>Satisfactory Update.bat</b>. Full instructions in the <a href="https://github.com/if-null/satwatch#readme">README</a>.</p>
+</main>
+<footer><div class="w">Unofficial fan tool. Satisfactory is (c) Coffee Stain Studios; satwatch is not affiliated with or endorsed by Coffee Stain Studios. Game data from SatisfactoryTools (MIT, (c) 2019 greeny). satwatch is MIT licensed. Built conversationally with an AI assistant (Grok Bot).</div></footer>
+</body></html>

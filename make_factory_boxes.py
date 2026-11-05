@@ -1,6 +1,6 @@
 """make_factory_boxes.py - build factories_boxes.json for the satwatch map overlay.
 
-stdlib only. Reads Helm's factories.json (+ raw_objects.json for member
+stdlib only. Reads a factories.json (+ raw_objects.json for member
 building positions) and writes one bounding box per factory.
 
   python make_factory_boxes.py --in factories.json --raw raw_objects.json \
@@ -133,7 +133,7 @@ def main(argv=None):
             'warnings': warn,
         })
     src = D.get('source', '')
-    mt = re.search(r'(Miners Farm_\S+?\.sav)', src); dt = re.search(r'(\d{4}-\d\d-\d\d(?: \d\d:\d\d)?(?: [A-Z]{3,4})?)', src)
+    mt = re.search(r'([^\\/:\"]+?\.sav)', src); dt = re.search(r'(\d{4}-\d\d-\d\d(?: \d\d:\d\d)?(?: [A-Z]{3,4})?)', src)
     res = {
         'derived_from_save': {'file': mt.group(1) if mt else src, 'date': dt.group(1) if dt else None, 'source': src},
         'generated': datetime.datetime.now().astimezone().isoformat(timespec='seconds'),

@@ -1,4 +1,4 @@
-"""plan.py: Thomas's plan file (plan.json in the satwatch WORK folder), stdlib only.
+"""plan.py: The user's plan file (plan.json in the satwatch WORK folder), stdlib only.
 
 Only the dashboard writes plan.json (POST /api/plan/*). The vault gets a read-only plan.md
 view; the plan is never read back from the vault. Atomic writes + timestamped backups.

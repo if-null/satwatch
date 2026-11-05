@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """satwatch: run-once Satisfactory save watcher + offline dashboard.
 
-Double-click 'Satisfactory Update.bat'. Parses new 'Miners Farm*.sav' saves with
+Double-click 'Satisfactory Update.bat'. Parses new '*.sav' saves with
 satparse.py (shipped beside this file), rebuilds the timeline, writes a summary into
 the Obsidian vault folder and serves a dashboard on http://127.0.0.1:8777/.
 Stdlib only.
@@ -12,17 +12,25 @@ from urllib.parse import urlparse, parse_qs
 
 # ---------------- configuration (edit here or use flags) ----------------
 HOME = Path(os.environ.get('USERPROFILE') or Path.home())
-DEFAULT_SAVES = HOME / 'AppData' / 'Local' / 'FactoryGame' / 'Saved' / 'SaveGames' / '76561197968480163'
+_SAVEGAMES = Path(os.environ.get('LOCALAPPDATA') or (HOME / 'AppData' / 'Local')) / 'FactoryGame' / 'Saved' / 'SaveGames'
+def _default_saves():
+    # Saves live in SaveGames\<account id>\. Use the only such subfolder if there is exactly one.
+    try:
+        subs = [d for d in _SAVEGAMES.iterdir() if d.is_dir() and any(d.glob('*.sav'))]
+    except OSError:
+        subs = []
+    return subs[0] if len(subs) == 1 else _SAVEGAMES
+DEFAULT_SAVES = _default_saves()
 DEFAULT_WORK = HOME / 'satisfactory-work'
-DEFAULT_VAULT_OUT = HOME / 'Documents' / 'Field Ledger' / 'games' / 'satisfactory' / 'data'
-DEFAULT_PATTERN = 'Miners Farm*.sav'
+DEFAULT_VAULT_OUT = HOME / 'Documents' / 'satwatch' / 'data'
+DEFAULT_PATTERN = '*.sav'
 DEFAULT_PORT = 8777
 SATWATCH_VERSION = '1.3'
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import depotgap  # noqa: E402  (Dimensional Depot gap check)
-import satparse  # noqa: E402  (Helm's parser, shipped beside this file; 0.4 adds network data)
+import satparse  # noqa: E402  (save parser, shipped beside this file; 0.4 adds network data)
 import volume  # noqa: E402  (Volume items table, computed from the latest snapshot)
 import plan as planmod  # noqa: E402  (plan.json in the work folder; only the dashboard writes it)
 import insights  # noqa: E402  (milestone history, census, inventory, parser notes)
@@ -686,7 +694,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 self.send_response(200)
                 self.send_header('Content-Type', ct)
                 self.send_header('Content-Length', str(len(b)))
-                self.send_header('Cache-Control', 'max-age=86400')
+                self.send_header('Cache-Control', 'no-cache')
                 self.end_headers()
                 self.wfile.write(b)
                 return

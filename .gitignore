@@ -1,40 +1,7 @@
-# Bytecode
-__pycache__/
-*.pyc
-
-# User save files
-*.sav
-saves/
-
-# Work-folder data (snapshots, plan, timeline). Never commit.
-work/
-satisfactory-work/
-snaps/
-plan.json
-plan_backups/
-plan.corrupt-*.json
-state.json
-inventory_peaks.json
-timeline.json
-timeline.csv
-
-# Generated vault output. Never commit.
-vault-out/
-latest.json
-latest_points.json
-map_summary.json
-status.md
-depot_gap.json
-depot_gap.md
-volume_items.json
-volume_items.md
-plan.md
-
-# Distribution archives
-*.zip
-
-# User-supplied map image. Never commit. The generated placeholder stays tracked.
 assets/map.jpg
 assets/map.jpeg
 assets/map.png
 assets/map.webp
+__pycache__/
+*.pyc
+_review_montage.png
